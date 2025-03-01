@@ -1,0 +1,12 @@
+packages:
+  - .demo
+  - .app
+  - layers/*
+onlyBuiltDependencies:
+  - '@parcel/watcher'
+  - better-sqlite3
+  - core-js
+  - core-js-pure
+  - esbuild
+  - sharp
+  - vue-demi
