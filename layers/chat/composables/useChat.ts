@@ -61,15 +61,15 @@ interface Conversation {
 }
 
 import { useChatGemini } from './useChatGemini'
-import { useChatAgency } from './useChatAgency'
-import { useAgentWebCrawler } from './agents/agentWebCrawler'
+// import { useChatAgency } from './useChatAgency'
+// import { useAgentWebCrawler } from './agents/agentWebCrawler'
 import { useRuntimeConfig } from '#app'
 import { ref, shallowRef, computed, watch } from 'vue'
 
 export const useChat = () => {
   const config = useRuntimeConfig()
   const geminiChat = useChatGemini(config.public.geminiApiKey)
-  const agencyChat = useChatAgency()
+  // const agencyChat = useChatAgency()
   const {
     openGeminiConnection,
     sendMessage: sendGeminiMessage,
@@ -82,17 +82,17 @@ export const useChat = () => {
     sendContextInfo
   } = geminiChat
 
-  const {
-    openAgencyConnection,
-    sendMessage: sendAgencyMessage,
-    messages: agencyMessages
-  } = agencyChat
+  // const {
+  //   openAgencyConnection,
+  //   sendMessage: sendAgencyMessage,
+  //   messages: agencyMessages
+  // } = agencyChat
 
-  const {
-    openWebCrawlerConnection,
-    sendMessage: sendWebCrawlerMessage,
-    messages: webCrawlerMessages
-  } = useAgentWebCrawler()
+  // const {
+  //   openWebCrawlerConnection,
+  //   sendMessage: sendWebCrawlerMessage,
+  //   messages: webCrawlerMessages
+  // } = useAgentWebCrawler()
 
   // Use useState for all state that needs to persist
   const message = useState('message', () => '')
@@ -129,32 +129,32 @@ export const useChat = () => {
       },
       messages: [],
     },
-    {
-      id: 2,
-      user: {
-        name: 'Agency',
-        photo: '/img/avatars/3.svg',
-        role: 'agency',
-        bio: 'Kaleb is a family member registered under the same account.',
-        age: 32,
-        location: 'New York',
-      },
-      messages: [
+    // {
+    //   id: 2,
+    //   user: {
+    //     name: 'Agency',
+    //     photo: '/img/avatars/3.svg',
+    //     role: 'agency',
+    //     bio: 'Kaleb is a family member registered under the same account.',
+    //     age: 32,
+    //     location: 'New York',
+    //   },
+    //   messages: [
 
-      ],
-    },
-    {
-      id: 3,
-      user: {
-        name: 'Web Crawler',
-        photo: '/img/avatars/4.svg',
-        role: 'web-crawler',
-        bio: 'I am a web crawler registered under the same account.',
-        age: 32,
-        location: 'New York',
-      },
-      messages: [],
-    },
+    //   ],
+    // },
+    // {
+    //   id: 3,
+    //   user: {
+    //     name: 'Web Crawler',
+    //     photo: '/img/avatars/4.svg',
+    //     role: 'web-crawler',
+    //     bio: 'I am a web crawler registered under the same account.',
+    //     age: 32,
+    //     location: 'New York',
+    //   },
+    //   messages: [],
+    // },
   ])
 
   const selectedConversation = computed(() => {
@@ -208,34 +208,34 @@ export const useChat = () => {
     }
   }, { deep: true })
 
-  // Watch for Agency messages
-  watch(agencyMessages, (newMessages) => {
-    console.log('Agency messages updated:', newMessages)
-    if (selectedConversation.value?.user.role === 'agency') {
-      const conversation = conversations.value.find(c => c.id === activeConversationId.value)
-      if (conversation) {
-        // Get the latest message
-        const latestMessage = newMessages[newMessages.length - 1]
+  // // Watch for Agency messages
+  // watch(agencyMessages, (newMessages) => {
+  //   console.log('Agency messages updated:', newMessages)
+  //   if (selectedConversation.value?.user.role === 'agency') {
+  //     const conversation = conversations.value.find(c => c.id === activeConversationId.value)
+  //     if (conversation) {
+  //       // Get the latest message
+  //       const latestMessage = newMessages[newMessages.length - 1]
 
-        // If it's a received message and text-to-speech is enabled, speak it
-        if (latestMessage?.type === 'received' && readText.value) {
-          speakText(latestMessage.text)
-        }
+  //       // If it's a received message and text-to-speech is enabled, speak it
+  //       if (latestMessage?.type === 'received' && readText.value) {
+  //         speakText(latestMessage.text)
+  //       }
 
-        conversation.messages = newMessages
-      }
-    }
-  }, { deep: true })
+  //       conversation.messages = newMessages
+  //     }
+  //   }
+  // }, { deep: true })
 
-  // Watch for Web Crawler messages
-  watch(webCrawlerMessages, (newMessages) => {
-    if (selectedConversation.value?.user.role === 'web-crawler') {
-      const conversation = conversations.value.find(c => c.id === activeConversationId.value)
-      if (conversation) {
-        conversation.messages = newMessages
-      }
-    }
-  }, { deep: true })
+  // // Watch for Web Crawler messages
+  // watch(webCrawlerMessages, (newMessages) => {
+  //   if (selectedConversation.value?.user.role === 'web-crawler') {
+  //     const conversation = conversations.value.find(c => c.id === activeConversationId.value)
+  //     if (conversation) {
+  //       conversation.messages = newMessages
+  //     }
+  //   }
+  // }, { deep: true })
 
 
   // Handle message submission
@@ -270,32 +270,33 @@ export const useChat = () => {
       if (selectedConversation.value.user.role === 'gemini') {
         console.log('Sending message to Gemini:', messageText)
         await sendGeminiMessage(messageText, image)
-      } else if (selectedConversation.value.user.role === 'agency') {
-        console.log('Sending message to Agency:', messageText)
-        console.log('Agency connection status:', {
-          isConnected: agencyChat.isConnected.value
-        })
-        selectedConversation.value.messages.push({
-          type: 'sent',
-          text: messageText,
-          time: new Date().toLocaleTimeString(),
-          attachments,
-        })
-        try {
-          await sendAgencyMessage(messageText)
-          console.log('Message sent to Agency successfully')
-        } catch (error) {
-          console.error('Error sending message to Agency:', error)
-          // Try reconnecting and sending again
-          console.log('Attempting to reconnect to Agency...')
-          await openAgencyConnection()
-          console.log('Reconnected to Agency, trying to send message again...')
-          await sendAgencyMessage(messageText)
-        }
-      } else if (selectedConversation.value.user.role === 'web-crawler') {
-        console.log('Sending message to Web Crawler:', messageText)
-        await sendWebCrawlerMessage(messageText, image)
-      }
+      } 
+      // else if (selectedConversation.value.user.role === 'agency') {
+      //   console.log('Sending message to Agency:', messageText)
+      //   console.log('Agency connection status:', {
+      //     isConnected: agencyChat.isConnected.value
+      //   })
+      //   selectedConversation.value.messages.push({
+      //     type: 'sent',
+      //     text: messageText,
+      //     time: new Date().toLocaleTimeString(),
+      //     attachments,
+      //   })
+      //   try {
+      //     await sendAgencyMessage(messageText)
+      //     console.log('Message sent to Agency successfully')
+      //   } catch (error) {
+      //     console.error('Error sending message to Agency:', error)
+      //     // Try reconnecting and sending again
+      //     console.log('Attempting to reconnect to Agency...')
+      //     await openAgencyConnection()
+      //     console.log('Reconnected to Agency, trying to send message again...')
+      //     await sendAgencyMessage(messageText)
+      //   }
+      // } else if (selectedConversation.value.user.role === 'web-crawler') {
+      //   console.log('Sending message to Web Crawler:', messageText)
+      //   await sendWebCrawlerMessage(messageText, image)
+      // }
     } catch (error) {
       console.error('Failed to send message:', error)
     } finally {
@@ -317,15 +318,16 @@ export const useChat = () => {
           await openGeminiConnection()
           console.log('Gemini connection established')
 
-        } else if (conversation.user.role === 'agency') {
-          console.log('Opening Agency connection')
-          await openAgencyConnection()
-          console.log('Agency connection established')
-        } else if (conversation.user.role === 'web-crawler') {
-          console.log('Opening Web Crawler connection')
-          await openWebCrawlerConnection()
-          console.log('Web Crawler connection established')
-        }
+        } 
+        // else if (conversation.user.role === 'agency') {
+        //   console.log('Opening Agency connection')
+        //   await openAgencyConnection()
+        //   console.log('Agency connection established')
+        // } else if (conversation.user.role === 'web-crawler') {
+        //   console.log('Opening Web Crawler connection')
+        //   await openWebCrawlerConnection()
+        //   console.log('Web Crawler connection established')
+        // }
       } catch (error) {
         console.error('Failed to initialize connection:', error)
       }
@@ -628,11 +630,12 @@ export const useChat = () => {
       // Send the function call to Gemini
       if (selectedConversation.value.user.role === 'gemini') {  
         await sendContextInfo(text)
-      } else if (selectedConversation.value.user.role === 'agency') {
-        // await sendAgencyMessage(text)
-      } else if (selectedConversation.value.user.role === 'web-crawler') {
-        // await sendWebCrawlerMessage(text)
-      }
+      } 
+      // else if (selectedConversation.value.user.role === 'agency') {
+      //   // await sendAgencyMessage(text)
+      // } else if (selectedConversation.value.user.role === 'web-crawler') {
+      //   // await sendWebCrawlerMessage(text)
+      // }
     } catch (error) {
       console.error('Failed to send function message:', error)
     }

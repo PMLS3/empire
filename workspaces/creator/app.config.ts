@@ -87,7 +87,7 @@ export default defineAppConfig({
           {
             title: 'Chat',
             icon: { name: 'ph:chat-circle-duotone', class: 'w-5 h-5' },
-            to: '/dashboards/messaging',
+            to: '/messaging/agents',
           },
           {
             title: 'Customize',

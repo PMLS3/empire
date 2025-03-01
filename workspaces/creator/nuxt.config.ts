@@ -36,6 +36,8 @@ export default defineNuxtConfig({
     '../../layers/layout-topnav',
     '../../layers/layout-iconnav',
     '../../layers/shared',
+    '../../layers/chat',
+
   ],
   // nuxt behavior configuration
   runtimeConfig: {

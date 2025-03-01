@@ -12,7 +12,7 @@ import { useVoiceRecorder } from '../composables/media/useVoiceRecorder'
 import { useAudioPlayer } from './media/useAudioPlayer'
 import { functionHandlers } from './functions'
 import { systemInstructionRouting, functionDeclarationsRouting } from './functions/routing'
-import { systemInstructionBook, functionDeclarationsBook } from './functions/publising'
+// import { systemInstructionBook, functionDeclarationsBook } from './functions/publising'
 // Separate interfaces for text and voice states
 interface TextState {
   messages: ChatMessage[]
@@ -274,7 +274,6 @@ export const useChatGemini = (apiKey: string) => {
 
             ${systemInstructionRouting()}
 
-            ${systemInstructionBook()}
 
 
             - setCanvasMainElement: Set the routing element where the user will navigate
@@ -648,7 +647,6 @@ export const useChatGemini = (apiKey: string) => {
           }
         },
        ...functionDeclarationsRouting,
-       ...functionDeclarationsBook,
       ]
     }
   }

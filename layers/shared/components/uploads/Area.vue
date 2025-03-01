@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { formatFileSize } from '../../utils/format'
+import { formatFileSize } from '../../utils/format-files'
 
 const props = defineProps({
   accept: {
