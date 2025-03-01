@@ -36,23 +36,50 @@ interface ConnectionState {
   error: string
 }
 
-export const useChatGemini = (apiKey: string) => {
-  // Connection state (shared)
-  const connectionState = useState<ConnectionState>('connectionState', () => ({
+export const useChatGemini = (apiKeyOrConfig: string | { 
+  apiKey: string, 
+  functions?: any[], 
+  systemInstruction?: string,
+  stateKey?: string // Add parameter for instance-specific state
+}) => {
+  // Extract config parameters - Fix the TypeError by adding null checks and defaults
+  const apiKey = typeof apiKeyOrConfig === 'string' 
+    ? apiKeyOrConfig 
+    : (apiKeyOrConfig && 'apiKey' in apiKeyOrConfig) ? apiKeyOrConfig.apiKey : '';
+    
+  const customFunctions = typeof apiKeyOrConfig === 'object' && apiKeyOrConfig 
+    ? apiKeyOrConfig.functions 
+    : undefined;
+    
+  const customSystemInstruction = typeof apiKeyOrConfig === 'object' && apiKeyOrConfig 
+    ? apiKeyOrConfig.systemInstruction 
+    : undefined;
+    
+  const stateKey = typeof apiKeyOrConfig === 'object' && apiKeyOrConfig && 'stateKey' in apiKeyOrConfig 
+    ? apiKeyOrConfig.stateKey 
+    : 'default';
+
+  // Create instance-specific state keys
+  const connectionStateKey = `connectionState-${stateKey}`
+  const textStateKey = `textState-${stateKey}` 
+  const voiceStateKey = `voiceState-${stateKey}`
+
+  // Connection state (instance-specific)
+  const connectionState = useState<ConnectionState>(connectionStateKey, () => ({
     isConnected: false,
     wsState: null,
     error: '',
   }))
 
-  // Text-specific state
-  const textState = useState<TextState>('textState', () => ({
+  // Text-specific state (instance-specific)
+  const textState = useState<TextState>(textStateKey, () => ({
     messages: [],
     currentResponse: null,
     error: '',
   }))
 
-  // Voice-specific state
-  const voiceState = useState<VoiceState>('voiceState', () => ({
+  // Voice-specific state (instance-specific)
+  const voiceState = useState<VoiceState>(voiceStateKey, () => ({
     messages: [],
     isStreaming: false,
     currentAudioResponse: null,
@@ -666,6 +693,90 @@ export const useChatGemini = (apiKey: string) => {
     }
   }
 
+  // Make a deep copy of the base textConfig
+  const finalTextConfig = JSON.parse(JSON.stringify(textConfig));
+  
+  // Clean function declarations to avoid issues with reserved keywords and validate format
+  const sanitizeFunctionDeclarations = (declarations: any[]) => {
+    if (!declarations || !Array.isArray(declarations)) {
+      console.error('Invalid function declarations format:', declarations);
+      return [];
+    }
+    
+    return declarations.map(func => {
+      try {
+        if (!func.name || typeof func.name !== 'string') {
+          console.error('Function declaration missing name or name is not a string:', func);
+          return null;
+        }
+        
+        const cleanFunc: any = {
+          name: func.name,
+          description: func.description || 'No description provided.',
+          parameters: {
+            type: 'object',
+            properties: {}
+          }
+        };
+        
+        if (func.parameters && func.parameters.properties) {
+          Object.entries(func.parameters.properties).forEach(([propName, propValue]) => {
+            const safeProp: any = { ...propValue };
+            delete safeProp.default;
+            
+            // Ensure type and description are present
+            safeProp.type = safeProp.type || 'string';
+            safeProp.description = safeProp.description || 'No description provided.';
+            
+            cleanFunc.parameters.properties[propName] = safeProp;
+          });
+        }
+        
+        if (func.parameters && func.parameters.required) {
+          cleanFunc.parameters.required = func.parameters.required;
+        } else {
+          cleanFunc.parameters.required = []; // Ensure required is always present
+        }
+        
+        return cleanFunc;
+      } catch (e) {
+        console.error('Error sanitizing function:', func, e);
+        return null;
+      }
+    }).filter(Boolean);
+  };
+  
+  // Update Text Config if custom functions or system instruction provided
+  if (customFunctions && Array.isArray(customFunctions) && customFunctions.length > 0) {
+    try {
+      const sanitizedFunctions = sanitizeFunctionDeclarations(customFunctions);
+      console.log(`Applying ${sanitizedFunctions.length} custom functions to ${stateKey}`);
+      
+      // Replace with sanitized functions
+      finalTextConfig.tools = {
+        ...finalTextConfig.tools,
+        functionDeclarations: sanitizedFunctions
+      };
+      
+      // Debug logging - output the first function to check format
+      if (sanitizedFunctions.length > 0) {
+        console.log('Sample function declaration:', 
+                    JSON.stringify(sanitizedFunctions[0]).substring(0, 150) + '...');
+      }
+    } catch (err) {
+      console.error('Failed to apply custom functions:', err);
+    }
+  }
+  
+  if (customSystemInstruction) {
+    console.log(`Applying custom system instruction to ${stateKey}`);
+    finalTextConfig.systemInstruction = {
+      parts: [{
+        text: customSystemInstruction
+      }]
+    };
+  }
+
   const openGeminiConnection = () => {
     console.log('Opening Gemini connection...', { apiKey: apiKey?.slice(0, 5) + '...' })
 
@@ -696,10 +807,33 @@ export const useChatGemini = (apiKey: string) => {
           error: '',
         }
 
-        // Send initial setup for text
-        const setupData = { setup: textConfig }
-        console.log('Sending initial text setup:', setupData)
-        ws.send(JSON.stringify(setupData))
+        // Send initial setup with the finalTextConfig that includes custom functions
+        const setupData = { setup: finalTextConfig }
+        console.log(`Sending initial text setup for ${stateKey}:`, {
+          functions: finalTextConfig.tools.functionDeclarations.length,
+          systemInstruction: finalTextConfig.systemInstruction.parts[0].text.substring(0, 50) + '...'
+        })
+        
+        try {
+          // Validate JSON before sending
+          const setupString = JSON.stringify(setupData);
+          JSON.parse(setupString); // This will throw if invalid JSON
+          
+          ws.send(setupString)
+        } catch (jsonError) {
+          console.error('Invalid setup JSON:', jsonError);
+          console.error('First 500 chars of JSON:', JSON.stringify(setupData).substring(0, 500));
+          
+          // Close with error
+          ws.close(1000, 'Invalid setup JSON');
+          
+          connectionState.value = {
+            ...connectionState.value,
+            isConnected: false,
+            wsState: null,
+            error: 'Failed to create valid setup configuration',
+          }
+        }
       }
 
       ws.onmessage = async (event) => {
@@ -738,8 +872,10 @@ export const useChatGemini = (apiKey: string) => {
 
       ws.onclose = (event) => {
         console.log('WebSocket closed:', event)
+        console.log('Close reason:', event.reason)
         connectionState.value.isConnected = false
         connectionState.value.wsState = null
+        connectionState.value.error = event.reason || 'Connection closed';
       }
 
       return ws
@@ -799,7 +935,7 @@ export const useChatGemini = (apiKey: string) => {
             } catch {
               // If not valid JSON, apply sanitization
               sanitizedCode = trimmedCode
-                // Remove any Python-style string formatting
+                // Remove any "default" key from properties
                 .replace(/^'''\n?|\n?'''$|"""\n?|\n?"""$/g, '') // Remove Python multiline string markers
                 .replace(/(['"])?([a-zA-Z0-9_]+)(['"])?:/g, '"$2":') // Fix unquoted keys
                 .replace(/: '([^']*)'/g, ': "$1"') // Replace single quotes with double quotes for simple values

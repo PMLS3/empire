@@ -61,15 +61,41 @@ interface Conversation {
 }
 
 import { useChatGemini } from './useChatGemini'
-// import { useChatAgency } from './useChatAgency'
-// import { useAgentWebCrawler } from './agents/agentWebCrawler'
+import { useChatAgency } from './useChatAgency'
 import { useRuntimeConfig } from '#app'
 import { ref, shallowRef, computed, watch } from 'vue'
+import { combineGroups } from '../../functions'  // Import the combineGroups helper
 
 export const useChat = () => {
   const config = useRuntimeConfig()
-  const geminiChat = useChatGemini(config.public.geminiApiKey)
-  // const agencyChat = useChatAgency()
+  const geminiChat = useChatGemini({ apiKey: config.public.geminiApiKey, stateKey: 'main-chat' })
+  
+  // Initialize agency chats with unique configuration to ensure they don't share state
+  const crmAgency = useChatAgency({
+    apiKey: config.public.geminiApiKey,
+    functionGroups: ['crm', 'research'],
+    customInstructions: 'Focus on helping with customer relationship management. You are a CRM Assistant.',
+    enableVoice: true,
+    enableScreenShare: false
+  })
+
+  const researchAgency = useChatAgency({
+    apiKey: config.public.geminiApiKey,
+    functionGroups: ['research'],
+    customInstructions: 'Focus on helping with research tasks. You are a Research Assistant.',
+    enableVoice: true,
+    enableScreenShare: false
+  })
+  
+  const publishingAgency = useChatAgency({
+    serverBased: true,
+    serverUrl: config.public.publishingAgencyUrl || '/api/chat/test',
+    functionGroups: ['publishing', 'research'],
+    customInstructions: 'Focus on helping with book publishing projects. You are a Publishing Assistant.',
+    enableVoice: true,
+    enableScreenShare: true
+  })
+  
   const {
     openGeminiConnection,
     sendMessage: sendGeminiMessage,
@@ -82,17 +108,12 @@ export const useChat = () => {
     sendContextInfo
   } = geminiChat
 
-  // const {
-  //   openAgencyConnection,
-  //   sendMessage: sendAgencyMessage,
-  //   messages: agencyMessages
-  // } = agencyChat
-
-  // const {
-  //   openWebCrawlerConnection,
-  //   sendMessage: sendWebCrawlerMessage,
-  //   messages: webCrawlerMessages
-  // } = useAgentWebCrawler()
+  // Agency integration - create a mapping of conversation roles to agency instances
+  const agencyChats = {
+    'crm-agency': crmAgency,
+    'publishing-agency': publishingAgency,
+    'research-agency': researchAgency,
+  }
 
   // Use useState for all state that needs to persist
   const message = useState('message', () => '')
@@ -118,7 +139,7 @@ export const useChat = () => {
   // Use useState for conversations
   const conversations = useState<Conversation[]>('conversations', () => [
     {
-      id: 1,
+      id: 6,
       user: {
         name: 'Gemini',
         photo: '/img/avatars/1.svg',
@@ -129,32 +150,45 @@ export const useChat = () => {
       },
       messages: [],
     },
-    // {
-    //   id: 2,
-    //   user: {
-    //     name: 'Agency',
-    //     photo: '/img/avatars/3.svg',
-    //     role: 'agency',
-    //     bio: 'Kaleb is a family member registered under the same account.',
-    //     age: 32,
-    //     location: 'New York',
-    //   },
-    //   messages: [
+    {
+      id: 1,
+      user: {
+        name: 'CRM Assistant',
+        photo: '/img/avatars/3.svg',
+        role: 'crm-agency',
+        bio: 'I am your CRM assistant helping you manage customer relationships efficiently.',
+        age: 1,
+        location: 'Agency Cloud',
+      },
+      messages: [],
+    },
+    {
+      id: 2,
+      user: {
+        name: 'Publishing Assistant',
+        photo: '/img/avatars/4.svg',
+        role: 'publishing-agency',
+        bio: 'I am your publishing assistant helping with book projects and market analysis.',
+        age: 1,
+        location: 'Agency Cloud',
+      },
+      messages: [],
+    },
+    {
+      id: 3,
+      user: {
+        name: 'Research Assistant',
+        photo: '/img/avatars/3.svg',
+        role: 'research-agency',
+        bio: 'I am your Research assistant helping you manage customer relationships efficiently.',
+        age: 1,
+        location: 'Agency Cloud',
+      },
+      messages: [],
+    },
 
-    //   ],
-    // },
-    // {
-    //   id: 3,
-    //   user: {
-    //     name: 'Web Crawler',
-    //     photo: '/img/avatars/4.svg',
-    //     role: 'web-crawler',
-    //     bio: 'I am a web crawler registered under the same account.',
-    //     age: 32,
-    //     location: 'New York',
-    //   },
-    //   messages: [],
-    // },
+
+
   ])
 
   const selectedConversation = computed(() => {
@@ -208,35 +242,306 @@ export const useChat = () => {
     }
   }, { deep: true })
 
-  // // Watch for Agency messages
-  // watch(agencyMessages, (newMessages) => {
-  //   console.log('Agency messages updated:', newMessages)
-  //   if (selectedConversation.value?.user.role === 'agency') {
-  //     const conversation = conversations.value.find(c => c.id === activeConversationId.value)
-  //     if (conversation) {
-  //       // Get the latest message
-  //       const latestMessage = newMessages[newMessages.length - 1]
+  // Watch for Agency messages and update conversations
+  // Create a watcher for each agency with the correct reference handling
+  Object.entries(agencyChats).forEach(([role, agency]) => {
+    watch(() => agency.messages, (newMessages) => {
+      try {
+        console.log(`${role} messages updated:`, newMessages);
+        
+        if (selectedConversation.value?.user.role === role) {
+          const conversation = conversations.value.find(c => c.id === activeConversationId.value);
+          if (conversation && Array.isArray(newMessages)) {
+            // Format the messages to match ChatMessage format if needed
+            const formattedMessages = newMessages.map(msg => {
+              try {
+                // Skip null or undefined messages
+                if (!msg) return null;
+                
+                // Check if the message already has the required format
+                if (msg.type && (msg.text || msg.content)) {
+                  return {
+                    ...msg,
+                    text: msg.text || msg.content,
+                    attachments: msg.attachments || []
+                  };
+                }
+                
+                // Convert from Gemini message format if necessary
+                return {
+                  type: msg.role === 'user' ? 'sent' : 'received',
+                  text: msg.content || (msg.parts && Array.isArray(msg.parts) ? msg.parts.join('') : '') || '',
+                  time: msg.time || new Date().toLocaleTimeString(),
+                  attachments: []
+                };
+              } catch (err) {
+                console.error('Error formatting message:', err, msg);
+                return null;
+              }
+            }).filter(Boolean); // Remove any null messages
+            
+            // Get the latest message for text-to-speech
+            const latestMessage = formattedMessages[formattedMessages.length - 1];
 
-  //       // If it's a received message and text-to-speech is enabled, speak it
-  //       if (latestMessage?.type === 'received' && readText.value) {
-  //         speakText(latestMessage.text)
-  //       }
+            // If it's a received message and text-to-speech is enabled, speak it
+            if (latestMessage && 
+                (latestMessage.type === 'received' || latestMessage.role === 'assistant') && 
+                readText.value) {
+              const textToSpeak = latestMessage.text || latestMessage.content || '';
+              if (textToSpeak) speakText(textToSpeak);
+            }
 
-  //       conversation.messages = newMessages
-  //     }
-  //   }
-  // }, { deep: true })
+            // Update conversation messages with a completely new array to ensure reactivity
+            conversation.messages = [...formattedMessages];
+          }
+        }
+      } catch (err) {
+        console.error(`Error processing ${role} messages:`, err);
+      }
+    }, { deep: true, immediate: false }); // Remove immediate to avoid initial empty messages overwrite
+  });
 
-  // // Watch for Web Crawler messages
-  // watch(webCrawlerMessages, (newMessages) => {
-  //   if (selectedConversation.value?.user.role === 'web-crawler') {
-  //     const conversation = conversations.value.find(c => c.id === activeConversationId.value)
-  //     if (conversation) {
-  //       conversation.messages = newMessages
-  //     }
-  //   }
-  // }, { deep: true })
+  // Watch for Agency messages and update conversations
+  Object.entries(agencyChats).forEach(([role, agency]) => {
+    watch(() => agency.messages, (newMessages) => {
+      try {
+        console.log(`${role} messages updated:`, newMessages);
+        
+        if (selectedConversation.value?.user.role === role) {
+          const conversation = conversations.value.find(c => c.id === activeConversationId.value);
+          if (conversation && Array.isArray(newMessages)) {
+            // Format the messages to match ChatMessage format
+            const formattedMessages = newMessages.map(msg => {
+              try {
+                // Skip null or undefined messages
+                if (!msg) return null;
+                
+                // Handle special message types
+                if (msg.type === 'error') {
+                  return {
+                    type: 'received',
+                    text: `Error: ${msg.text || msg.content || 'An error occurred'}`,
+                    time: msg.time || new Date().toLocaleTimeString(),
+                    attachments: [],
+                    error: true
+                  };
+                }
+                
+                if (msg.type === 'system') {
+                  return {
+                    type: 'separator',
+                    text: msg.text || msg.content || '',
+                    time: msg.time || new Date().toLocaleTimeString(),
+                    attachments: []
+                  };
+                }
+                
+                // Check if the message already has the required format
+                if (msg.type && (msg.text || msg.content)) {
+                  return {
+                    ...msg,
+                    text: msg.text || msg.content || '',
+                    attachments: msg.attachments || []
+                  };
+                }
+                
+                // Convert from other formats if necessary
+                return {
+                  type: msg.role === 'user' ? 'sent' : 'received',
+                  text: msg.content || (msg.parts && Array.isArray(msg.parts) ? msg.parts.join('') : '') || '',
+                  time: msg.time || new Date().toLocaleTimeString(),
+                  attachments: []
+                };
+              } catch (err) {
+                console.error('Error formatting message:', err, msg);
+                return null;
+              }
+            }).filter(Boolean); // Remove any null messages
+            
+            // Get the latest message for text-to-speech
+            const latestMessage = formattedMessages[formattedMessages.length - 1];
 
+            // If it's a received message and text-to-speech is enabled, speak it
+            if (latestMessage && 
+                (latestMessage.type === 'received') && 
+                readText.value) {
+              const textToSpeak = latestMessage.text || '';
+              if (textToSpeak) speakText(textToSpeak);
+            }
+
+            // Update conversation messages
+            conversation.messages = [...formattedMessages];
+          }
+        }
+      } catch (err) {
+        console.error(`Error processing ${role} messages:`, err);
+      }
+    }, { deep: true });
+  });
+
+  // Watch for Agency messages and update conversations
+  Object.entries(agencyChats).forEach(([role, agency]) => {
+    watch(() => agency.messages.value, (newMessages) => {
+      try {
+        console.log(`${role} messages updated:`, newMessages);
+        
+        if (selectedConversation.value?.user.role === role) {
+          const conversation = conversations.value.find(c => c.id === activeConversationId.value);
+          if (conversation && Array.isArray(newMessages)) {
+            // Format the messages to match ChatMessage format
+            const formattedMessages = newMessages.map(msg => {
+              try {
+                // Skip null or undefined messages
+                if (!msg) return null;
+                
+                // Handle Gemini serverContent format
+                if (msg.serverContent) {
+                  const modelTurn = msg.serverContent.modelTurn;
+                  if (modelTurn && modelTurn.parts && modelTurn.parts.length > 0) {
+                    const text = modelTurn.parts.map((part: any) => part.text || '').join('');
+                    return {
+                      type: 'received',
+                      text: text,
+                      time: new Date().toLocaleTimeString(),
+                      attachments: []
+                    };
+                  }
+                  // Skip turnComplete notifications
+                  if (msg.serverContent.turnComplete) return null;
+                }
+                
+                // Handle special message types
+                if (msg.type === 'error') {
+                  return {
+                    type: 'received',
+                    text: `Error: ${msg.text || msg.content || 'An error occurred'}`,
+                    time: msg.time || new Date().toLocaleTimeString(),
+                    attachments: [],
+                    error: true
+                  };
+                }
+                
+                if (msg.type === 'system') {
+                  return {
+                    type: 'separator',
+                    text: msg.text || msg.content || '',
+                    time: msg.time || new Date().toLocaleTimeString(),
+                    attachments: []
+                  };
+                }
+                
+                // Check if the message already has the required format
+                if (msg.type && (msg.text || msg.content)) {
+                  return {
+                    ...msg,
+                    text: msg.text || msg.content || '',
+                    attachments: msg.attachments || []
+                  };
+                }
+                
+                // Convert from other formats if necessary
+                return {
+                  type: msg.role === 'user' ? 'sent' : 'received',
+                  text: msg.content || (msg.parts && Array.isArray(msg.parts) ? msg.parts.join('') : '') || '',
+                  time: msg.time || new Date().toLocaleTimeString(),
+                  attachments: []
+                };
+              } catch (err) {
+                console.error('Error formatting message:', err, msg);
+                return null;
+              }
+            }).filter(Boolean); // Remove any null messages
+            
+            // Only update if there are new messages to show
+            if (formattedMessages.length > 0) {
+              // Get the latest message for text-to-speech
+              const latestMessage = formattedMessages[formattedMessages.length - 1];
+              
+              // If it's a received message and text-to-speech is enabled, speak it
+              if (latestMessage && latestMessage.type === 'received' && readText.value) {
+                const textToSpeak = latestMessage.text || '';
+                if (textToSpeak) speakText(textToSpeak);
+              }
+              
+              // Update conversation messages ensuring reactivity with a new array
+              conversation.messages = [...formattedMessages];
+            }
+          }
+        }
+      } catch (err) {
+        console.error(`Error processing ${role} messages:`, err);
+      }
+    }, { deep: true });
+  });
+
+  // Initialize connection when selecting a conversation
+  const selectConversation = async (id: number) => {
+    console.log('Selecting conversation:', id)
+    activeConversationId.value = id
+    const conversation = conversations.value.find(c => c.id === id)
+    console.log('Found conversation:', conversation)
+
+    if (conversation) {
+      try {
+        if (conversation.user.role === 'gemini') {
+          console.log('Opening Gemini connection')
+          await openGeminiConnection()
+          console.log('Gemini connection established')
+        } else if (conversation.user.role in agencyChats) {
+          console.log(`Opening ${conversation.user.role} connection`);
+          const agency = agencyChats[conversation.user.role];
+          
+          // Initialize the agency connection if it has an initConnection method
+          if (typeof agency.initConnection === 'function') {
+            console.log(`Initializing agency connection for ${conversation.user.role}`);
+            await agency.initConnection();
+            console.log(`Agency connection initialized, status:`, agency.isConnected.value);
+          }
+          
+          // Get messages from the agency
+          const agencyMessages = agency.messages.value;
+          
+          // Only update if there are messages to show and the conversation is empty
+          if (Array.isArray(agencyMessages) && agencyMessages.length > 0 && 
+              (!conversation.messages || conversation.messages.length === 0)) {
+            try {
+              const formattedMessages = agencyMessages.map(msg => {
+                // Skip null or undefined messages
+                if (!msg) return null;
+                
+                // Check if the message already has the required format
+                if (msg.type && msg.time) {
+                  return {
+                    ...msg,
+                    attachments: msg.attachments || []
+                  };
+                }
+                
+                // Convert from Gemini message format if necessary
+                return {
+                  type: msg.role === 'user' ? 'sent' : 'received',
+                  text: msg.content || (msg.parts && Array.isArray(msg.parts) ? msg.parts.join('') : '') || '',
+                  time: new Date().toLocaleTimeString(),
+                  attachments: []
+                };
+              }).filter(Boolean); // Remove any null messages
+              
+              // Initialize with formatted messages
+              conversation.messages = formattedMessages;
+            } catch (err) {
+              console.error('Error formatting messages on conversation select:', err);
+              // Initialize with empty messages if formatting fails
+              conversation.messages = [];
+            }
+          }
+          
+          console.log(`${conversation.user.role} connection established`)
+        }
+      } catch (error) {
+        console.error('Failed to initialize connection:', error)
+      }
+    }
+  }
 
   // Handle message submission
   const submitMessage = async ({ text, image }: { text?: string; image?: string } = {}) => {
@@ -270,67 +575,51 @@ export const useChat = () => {
       if (selectedConversation.value.user.role === 'gemini') {
         console.log('Sending message to Gemini:', messageText)
         await sendGeminiMessage(messageText, image)
-      } 
-      // else if (selectedConversation.value.user.role === 'agency') {
-      //   console.log('Sending message to Agency:', messageText)
-      //   console.log('Agency connection status:', {
-      //     isConnected: agencyChat.isConnected.value
-      //   })
-      //   selectedConversation.value.messages.push({
-      //     type: 'sent',
-      //     text: messageText,
-      //     time: new Date().toLocaleTimeString(),
-      //     attachments,
-      //   })
-      //   try {
-      //     await sendAgencyMessage(messageText)
-      //     console.log('Message sent to Agency successfully')
-      //   } catch (error) {
-      //     console.error('Error sending message to Agency:', error)
-      //     // Try reconnecting and sending again
-      //     console.log('Attempting to reconnect to Agency...')
-      //     await openAgencyConnection()
-      //     console.log('Reconnected to Agency, trying to send message again...')
-      //     await sendAgencyMessage(messageText)
-      //   }
-      // } else if (selectedConversation.value.user.role === 'web-crawler') {
-      //   console.log('Sending message to Web Crawler:', messageText)
-      //   await sendWebCrawlerMessage(messageText, image)
-      // }
+      } else if (selectedConversation.value.user.role in agencyChats) {
+        console.log(`Sending message to ${selectedConversation.value.user.role}:`, messageText);
+        const agency = agencyChats[selectedConversation.value.user.role];
+        
+        // Create the user message
+        const userMessage = {
+          type: 'sent',
+          text: messageText,
+          time: new Date().toLocaleTimeString(),
+          attachments: attachments || [],
+        };
+        
+        // Add message to UI immediately for responsiveness
+        selectedConversation.value.messages = [
+          ...selectedConversation.value.messages, 
+          userMessage
+        ];
+        
+        try {
+          // Ensure connection is established before sending
+          if (typeof agency.initConnection === 'function' && !agency.isConnected.value) {
+            console.log(`Initializing connection for ${selectedConversation.value.user.role} before sending message`);
+            await agency.initConnection();
+          }
+          
+          // Send the message through the agency
+          await agency.sendMessage(messageText);
+          console.log(`Message sent to ${selectedConversation.value.user.role} successfully`);
+        } catch (error) {
+          console.error(`Error sending message to ${selectedConversation.value.user.role}:`, error);
+          
+          // Add error message to conversation
+          selectedConversation.value.messages.push({
+            type: 'received',
+            text: `Error: ${error.message || 'Connection failed'}`,
+            time: new Date().toLocaleTimeString(),
+            attachments: [],
+            error: true
+          });
+        }
+      }
     } catch (error) {
       console.error('Failed to send message:', error)
     } finally {
       messageLoading.value = false
-    }
-  }
-
-  // Initialize connection when selecting a conversation
-  const selectConversation = async (id: number) => {
-    console.log('Selecting conversation:', id)
-    activeConversationId.value = id
-    const conversation = conversations.value.find(c => c.id === id)
-    console.log('Found conversation:', conversation)
-
-    if (conversation) {
-      try {
-        if (conversation.user.role === 'gemini') {
-          console.log('Opening Gemini connection')
-          await openGeminiConnection()
-          console.log('Gemini connection established')
-
-        } 
-        // else if (conversation.user.role === 'agency') {
-        //   console.log('Opening Agency connection')
-        //   await openAgencyConnection()
-        //   console.log('Agency connection established')
-        // } else if (conversation.user.role === 'web-crawler') {
-        //   console.log('Opening Web Crawler connection')
-        //   await openWebCrawlerConnection()
-        //   console.log('Web Crawler connection established')
-        // }
-      } catch (error) {
-        console.error('Failed to initialize connection:', error)
-      }
     }
   }
 
@@ -469,8 +758,15 @@ export const useChat = () => {
           if (selectedConversation.value.user.role === 'gemini') {
             await sendGeminiMessage(transcription)
             await sendGeminiVoice(audioBlob)
-          } else {
-            await sendAgencyMessage(transcription)
+          } else if (selectedConversation.value.user.role in agencyChats) {
+            const agency = agencyChats[selectedConversation.value.user.role]
+            if (agency.startRecording && agency.stopRecording) {
+              // Use the agency's voice capabilities directly
+              await agency.sendMessage(transcription)
+            } else {
+              // Fallback to text-only if voice not supported
+              await agency.sendMessage(transcription)
+            }
           }
         }
       } catch (transcriptionError) {
@@ -627,15 +923,14 @@ export const useChat = () => {
         selectedConversation.value.messages.push(tempMessage)
       }
 
-      // Send the function call to Gemini
-      if (selectedConversation.value.user.role === 'gemini') {  
+      // Send the function call to the appropriate service
+      if (selectedConversation.value.user.role === 'gemini') {
         await sendContextInfo(text)
-      } 
-      // else if (selectedConversation.value.user.role === 'agency') {
-      //   // await sendAgencyMessage(text)
-      // } else if (selectedConversation.value.user.role === 'web-crawler') {
-      //   // await sendWebCrawlerMessage(text)
-      // }
+      } else if (selectedConversation.value.user.role in agencyChats) {
+        // For agencies, just send as a regular message
+        // The function handling is done automatically via function groups
+        await agencyChats[selectedConversation.value.user.role].sendMessage(text)
+      }
     } catch (error) {
       console.error('Failed to send function message:', error)
     }

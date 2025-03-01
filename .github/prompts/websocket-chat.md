@@ -1,0 +1,603 @@
+# WebSocket Chat Implementation Guide
+
+This document provides a complete example of how to implement a real-time chat system using WebSockets, with both client-side composables and server-side endpoints.
+
+## Overview
+
+The implementation consists of two main parts:
+1. Client-side composable (`useChatAgency`) for managing the WebSocket connection and messages
+2. Server-side WebSocket handler for real-time communication
+
+This pattern enables real-time bidirectional communication between clients and servers, ideal for chat applications, collaborative tools, and agency systems.
+
+## Client-Side Implementation
+
+The client-side implementation uses a composable function that manages WebSocket connections, handles messages, and provides reactive state.
+
+### Key Features
+- Connection management (connect, disconnect, reconnect)
+- Message sending and receiving
+- Error handling and connection status
+- TypeScript interfaces for type safety
+
+### Code Example
+
+```typescript
+import { ref, shallowRef, watch, readonly, onBeforeUnmount } from '#imports'
+import { generateId } from '~/components/global/publishing/puzzles/utils'
+import { useAuth } from './auth'
+
+interface AgencyMessage {
+  id: string
+  type: 'sent' | 'received' | 'system' | 'info' | 'warn' | 'error' | 'debug'
+  text: string
+  time?: string
+  icon?: string
+  metadata?: Record<string, any>
+  userId?: string
+  attachments?: Array<{
+    type: 'image' | 'link' | 'voice' | 'canvas'
+    text?: string
+    image?: string
+    url?: string
+    audio?: string
+    captions?: string
+    name?: string
+    props?: Record<string, any>
+  }>
+}
+
+export const useChatAgency = () => {
+  const messages = useState<AgencyMessage[]>('agencyMessages', () => [])
+  const isConnected = useState('isConnected',() => false)
+  const socketConnection = useState<any>('socketConnection', ()=> null)
+  const isLoading = ref(false)
+  const reconnectAttempts = ref(0)
+  const maxReconnectAttempts = 3
+  const connectionError = ref<string | null>(null)
+  const isConnecting = useState('isConnecting', () => false)
+
+  const openAgencyConnection = async () => {
+    try {
+      if (isConnecting.value) return
+      isConnecting.value = true
+
+      // Close existing connection if any
+      if (socketConnection.value) {
+        socketConnection.value.close()
+        socketConnection.value = null
+      }
+
+      // Get current user ID from auth
+      const { user } = useAuth()
+      const userId = user.value?.id || 'anonymous'
+      
+      // Add userId and room as query parameters
+      const baseUrl = useApiRoute(`/api/agency/book-research`)
+      const roomId = `book-research-${userId}-${Date.now()}`
+      const wsUrl = `${baseUrl}${baseUrl.includes('?') ? '&' : '?'}userId=${userId}&room=${roomId}`
+      console.log('Opening WebSocket connection:', wsUrl)
+
+      console.log('Creating WebSocket connection to:', wsUrl)
+      const { status, data, send, open, close } = useWebSocket(wsUrl, {
+        autoReconnect: {
+          retries: maxReconnectAttempts,
+          delay: 2000,
+          onFailed() {
+            console.log('WebSocket connection failed after maximum retries')
+            connectionError.value = 'Failed to connect after maximum retries'
+            isConnecting.value = false
+            isConnected.value = false
+          }
+        },
+        onConnected() {
+          console.log('WebSocket connected successfully')
+          isConnected.value = true
+          isConnecting.value = false
+          connectionError.value = null
+          reconnectAttempts.value = 0
+        },
+        onDisconnected() {
+          console.log('WebSocket disconnected')
+          isConnected.value = false
+          if (reconnectAttempts.value < maxReconnectAttempts) {
+            reconnectAttempts.value++
+          }
+        },
+        onError(error) {
+          console.error('WebSocket error:', error)
+          connectionError.value = 'Connection error occurred'
+        }
+      })
+      
+      console.log('Setting socketConnection.value')
+      socketConnection.value = { status, data, send, open, close }
+      console.log('socketConnection.value set:', !!socketConnection.value)
+      
+      // Handle incoming messages
+      watch(data, (newData) => {
+        if (!newData) return
+        
+        try {
+          const message = typeof newData === 'string' ? JSON.parse(newData) : newData
+          console.log('Received message:', message)
+
+          // Handle different message types
+          switch (message.type) {
+            case 'error':
+              messages.value.push({
+                id: generateId(),
+                text: message.message,
+                type: 'error',
+                time: new Date(message.timestamp || new Date()).toLocaleTimeString()
+              });
+              break;
+              
+            case 'system':
+              messages.value.push({
+                id: generateId(),
+                text: message.message,
+                type: 'system',
+                time: new Date(message.timestamp || new Date()).toLocaleTimeString()
+              });
+              break;
+              
+            case 'state_update':
+              // State updates are handled by the useBookResearch composable
+              // We don't need to display them in the chat
+              console.log('State update received:', message.state);
+              break;
+              
+            case 'human_feedback_request':
+              messages.value.push({
+                id: generateId(),
+                text: `${message.message}\n\n${message.data || ''}`,
+                type: 'system',
+                time: new Date(message.timestamp || new Date()).toLocaleTimeString(),
+                metadata: { requiresFeedback: true }
+              });
+              break;
+              
+            case 'assistant':
+            default:
+              messages.value.push({
+                id: generateId(),
+                text: message.message,
+                type: 'assistant',
+                time: new Date(message.timestamp || new Date()).toLocaleTimeString()
+              });
+              break;
+          }
+        } catch (error) {
+          console.error('Failed to parse message:', error)
+        }
+      })
+
+      // Watch connection status
+      watch(status, (newStatus) => {
+        console.log('WebSocket status:', newStatus)
+        // Check status by string comparison
+        if (newStatus === 'OPEN') {
+          console.log('Setting isConnected to true because status is OPEN')
+          isConnected.value = true
+        } else if (newStatus === 'CLOSED' || newStatus === 'CONNECTING') {
+          console.log('Setting isConnected to false because status is', newStatus)
+          isConnected.value = false
+        }
+      })
+
+    } catch (error) {
+      console.error('Failed to open agency connection:', error)
+      connectionError.value = 'Failed to establish connection'
+      isConnecting.value = false
+      isConnected.value = false
+    }
+  }
+
+  const sendMessage = async (content: string) => {
+    console.log('MESSAGE', content)
+    console.log('Sending message, connection status:', {
+      socketConnection: !!socketConnection.value,
+      isConnected: isConnected.value
+    })
+    
+    if (!socketConnection.value || !isConnected.value) {
+      throw new Error('Not connected to chat server')
+    }
+
+    try {
+      isLoading.value = true
+      
+      // Add user message to chat
+      messages.value.push({
+        id: generateId(),
+        text: content,
+        type: 'sent',
+        time: new Date().toLocaleTimeString()
+      })
+
+      // Send message through WebSocket
+      socketConnection.value.send(JSON.stringify({
+        type: 'message',
+        message: content,
+        timestamp: new Date().toISOString()
+      }))
+    } catch (error) {
+      console.error('Failed to send message:', error)
+      throw new Error('Failed to send message')
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  const closeConnection = () => {
+    if (socketConnection.value) {
+      socketConnection.value.close()
+      socketConnection.value = null
+      isConnected.value = false
+      isConnecting.value = false
+      connectionError.value = null
+    }
+  }
+
+  // Clean up on component unmount
+  onBeforeUnmount(() => {
+    closeConnection()
+  })
+
+  const sendHumanFeedback = async (feedback: string) => {
+    console.log('Sending human feedback, connection status:', {
+      socketConnection: !!socketConnection.value,
+      isConnected: isConnected.value
+    })
+    
+    if (!socketConnection.value || !isConnected.value) {
+      throw new Error('Not connected to chat server')
+    }
+
+    try {
+      isLoading.value = true
+      
+      // Add feedback message to chat
+      messages.value.push({
+        id: generateId(),
+        text: `Feedback: ${feedback}`,
+        type: 'sent',
+        time: new Date().toLocaleTimeString()
+      })
+
+      // Send feedback through WebSocket
+      socketConnection.value.send(JSON.stringify({
+        type: 'human_feedback',
+        feedback,
+        timestamp: new Date().toISOString()
+      }))
+    } catch (error) {
+      console.error('Failed to send feedback:', error)
+      throw new Error('Failed to send feedback')
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  return {
+    messages: readonly(messages),
+    isLoading: readonly(isLoading),
+    isConnected: readonly(isConnected),
+    connectionError: readonly(connectionError),
+    openAgencyConnection,
+    sendMessage,
+    sendHumanFeedback,
+    closeConnection
+  }
+}
+```
+
+## Server-Side Implementation
+
+The server-side implementation handles WebSocket connections, manages users and rooms, and processes incoming messages.
+
+### Key Features
+- Connection management
+- Room-based messaging
+- Message processing and routing
+- User tracking
+- Error handling
+
+### Code Example
+
+```typescript
+import type { Peer, Message } from "crossws"
+import { getQuery } from "ufo"
+import logger from "~/server/utils/logger"
+import { runBookResearch, setHumanFeedback } from "~/server/utils/agency/bookResearch"
+
+interface ChatMessage {
+  type: 'message' | 'system' | 'error' | 'human_feedback' | 'state_update';
+  message: string;
+  timestamp?: string;
+  userId?: string;
+  code?: string;
+  feedback?: string;
+  skipHumanFeedback?: boolean;
+  useGraph?: boolean;
+  researchId?: string;
+  workspaceId?: string;
+  idToken?: string;
+}
+
+const users = new Map<string, { online: boolean }>()
+let room = "BOOK_RESEARCH"
+
+// Helper function to get user ID from query parameters
+function getUserId(peer: Peer): string {
+  // Get URL from peer connection
+  const url = peer.request?.url || ''
+  const query = getQuery(url)
+  const userId = query.userId
+  return typeof userId === 'string' ? userId : (Array.isArray(userId) ? userId[0] : 'anonymous')
+}
+
+export default defineWebSocketHandler({
+  async open(peer) {
+    try {
+      const userId = getUserId(peer)
+      
+      // Check if user already exists
+      if (users.has(userId)) {
+        const existingUser = users.get(userId)
+        if (existingUser && existingUser.online) {
+          // Update existing user status
+          users.set(userId, { online: true })
+        }
+      } else {
+        // Add new user
+        users.set(userId, { online: true })
+      }
+
+      room = getRoomId(peer) || 'BOOK_RESEARCH'
+      
+      // Subscribe to room and notify
+      peer.subscribe(room)
+      peer.send(JSON.stringify({ 
+        type: 'system', 
+        message: 'Connected to Book Research Agency',
+        userId: userId,
+        timestamp: new Date().toISOString()
+      }))
+      
+      const stats = getStats()
+      logger.info({ message: `User ${userId} connected to Book Research. Online users: ${stats.online}/${stats.total}` }, peer)
+    } catch (error) {
+      logger.error({ message: 'Error in open handler', error: error as Error }, peer)
+      peer.send(JSON.stringify({ 
+        type: 'error',
+        message: 'Failed to establish connection to Book Research Agency',
+        timestamp: new Date().toISOString()
+      }))
+      peer.close()
+    }
+  },
+
+  close(peer) {
+    try {
+      const userId = getUserId(peer)
+      
+      if (userId) {
+        users.delete(userId)
+        const stats = getStats()
+        logger.info({ message: `User ${userId} disconnected from Book Research. Online users: ${stats.online}/${stats.total}` }, peer)
+      }
+
+      peer.unsubscribe(room)
+    } catch (error) {
+      logger.error({ message: 'Error in close handler', error: error as Error }, peer)
+    }
+  },
+
+  async message(peer, message) {
+    try {
+      console.log('MESSAGE', message)
+      if (!message) return
+
+      const messageContent = typeof message === 'string' ? message : message.toString()
+      logger.info({ message: `Received message for Book Research: ${messageContent}` }, peer)
+
+      if (messageContent === 'ping') {
+        peer.send('pong')
+        return
+      }
+
+      // Parse message if it's JSON
+      let data: ChatMessage
+      try {
+        data = JSON.parse(messageContent)
+      } catch {
+        data = { 
+          type: 'message',
+          message: messageContent,
+          timestamp: new Date().toISOString()
+        }
+      }
+
+      // Validate message structure
+      if (!data.message && data.type === 'message') {
+        logger.error({ message: 'Invalid message format' }, peer)
+        peer.send(JSON.stringify({ 
+          type: 'error', 
+          message: 'Invalid message format. Please provide a message with book URLs to analyze.',
+          timestamp: new Date().toISOString()
+        }))
+        return
+      }
+
+      // Handle different message types
+      if (data.type === 'message') {
+        // Send acknowledgment to the client
+        peer.send(JSON.stringify({
+          type: 'system',
+          message: 'Book research request received. Starting analysis...',
+          timestamp: new Date().toISOString()
+        }))
+
+        // Process the research request
+        await runBookResearch(data.message, peer, room, {
+          skipHumanFeedback: data.skipHumanFeedback === true,
+          researchId: data.researchId,
+          workspaceId: data.workspaceId,
+          userId: data.userId,
+          idToken: data.idToken
+        })
+      } else if (data.type === 'human_feedback' && data.feedback) {
+        // Store human feedback for the agent to pick up
+        setHumanFeedback(room, data.feedback)
+        
+        // Send acknowledgment
+        peer.send(JSON.stringify({
+          type: 'system',
+          message: 'Feedback received, continuing with research',
+          timestamp: new Date().toISOString()
+        }))
+      }
+
+    } catch (error) {
+      logger.error({ message: 'Error in message handler', error: error as Error }, peer)
+      peer.send(JSON.stringify({ 
+        type: 'error', 
+        message: 'Failed to process book research request',
+        timestamp: new Date().toISOString()
+      }))
+    }
+  }
+})
+
+function getRoomId(peer: Peer): string {
+  const url = peer.request?.url || ''
+  const query = getQuery(url)
+  const room = query.room
+  return typeof room === 'string' ? room : (Array.isArray(room) ? room[0] : 'BOOK_RESEARCH')
+}
+
+function getStats() {
+  return {
+    online: users.size,
+    total: users.size
+  }
+}
+```
+
+## Usage Example
+
+Here's how you would use the WebSocket chat composable in a Vue component:
+
+```vue
+<template>
+  <div class="chat-container">
+    <!-- Display all messages -->
+    <div class="messages">
+      <div v-for="message in chat.messages" :key="message.id" :class="['message', message.type]">
+        <div class="message-time">{{ message.time }}</div>
+        <div class="message-content">{{ message.text }}</div>
+      </div>
+    </div>
+    
+    <!-- Input for sending new messages -->
+    <div class="input-area">
+      <input v-model="newMessage" @keyup.enter="sendMessage" placeholder="Type a message..." />
+      <button @click="sendMessage" :disabled="!chat.isConnected">Send</button>
+    </div>
+    
+    <!-- Connection status -->
+    <div class="connection-status">
+      <span :class="{ 'connected': chat.isConnected, 'disconnected': !chat.isConnected }">
+        {{ chat.isConnected ? 'Connected' : 'Disconnected' }}
+      </span>
+      <button v-if="!chat.isConnected" @click="connect">Connect</button>
+      <button v-else @click="disconnect">Disconnect</button>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref } from 'vue';
+import { useChatAgency } from '~/composables/useChatAgency';
+
+// Initialize the chat composable
+const chat = useChatAgency();
+const newMessage = ref('');
+
+// Connect when component is mounted
+onMounted(() => {
+  connect();
+});
+
+// Disconnect when component is unmounted
+onUnmounted(() => {
+  disconnect();
+});
+
+// Connect to the WebSocket
+const connect = async () => {
+  try {
+    await chat.openAgencyConnection();
+  } catch (error) {
+    console.error('Failed to connect:', error);
+  }
+};
+
+// Disconnect from the WebSocket
+const disconnect = () => {
+  chat.closeConnection();
+};
+
+// Send a new message
+const sendMessage = async () => {
+  if (!newMessage.value.trim() || !chat.isConnected) return;
+  
+  try {
+    await chat.sendMessage(newMessage.value);
+    newMessage.value = ''; // Clear input after sending
+  } catch (error) {
+    console.error('Failed to send message:', error);
+  }
+};
+</script>
+```
+
+## Key Implementation Points
+
+1. **Connection Management**
+   - Establish connection with user authentication
+   - Handle reconnection attempts
+   - Clean up on component unmount
+
+2. **Message Handling**
+   - Type-safe message interfaces
+   - Different message types (system, error, user, etc.)
+   - Message parsing and validation
+
+3. **Error Handling**
+   - Connection errors
+   - Message parsing errors
+   - Server-side validation
+
+4. **State Management**
+   - Track connection status
+   - Store message history
+   - Handle loading states
+
+5. **Room-Based Communication**
+   - Multiple users can join the same room
+   - Messages are broadcast to all users in a room
+   - Room identification via URL parameters
+
+## Conclusion
+
+This WebSocket chat implementation provides a complete solution for real-time communication between clients and servers. It can be adapted for various use cases such as chat applications, collaborative tools, and agency systems.
+
+For enhanced functionality, consider adding features like:
+- Message persistence
+- Offline support
+- Typing indicators
+- Read receipts
+- File uploads

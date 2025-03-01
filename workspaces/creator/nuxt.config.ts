@@ -263,6 +263,12 @@ export default defineNuxtConfig({
         target: 'esnext',
       },
     },
+    routeRules: {
+      '/uploads/**': { static: true },
+    },
+    experimental: {
+      websocket: true,
+    },
   },
 
   vite: {
