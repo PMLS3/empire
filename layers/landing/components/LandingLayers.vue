@@ -30,7 +30,7 @@
         <LandingLayersBox
           title="Starter App"
           icon="ph:rocket-duotone"
-          to="/documentation/setup"
+          to="/"
           color="indigo"
         >
           Tairo ships with a clean starter project where you can start writing
@@ -40,7 +40,7 @@
         <LandingLayersBox
           title="Customization"
           icon="ph:sparkle-duotone"
-          to="/documentation/tailwindcss"
+          to="/"
           color="purple"
         >
           Tairo is built with Tailwind CSS and Shuriken UI. You can customize
@@ -50,7 +50,7 @@
         <LandingLayersBox
           title="Component reference"
           icon="ph:notification-duotone"
-          to="/documentation/reference"
+          to="/"
         >
           Tairo ships with a lot of UI components, from the smallest parts
           required to build a web application to more complex organisms with

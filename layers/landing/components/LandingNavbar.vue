@@ -1,9 +1,9 @@
 <script setup lang="ts">
-const isSearchOpen = useState('search-open', () => false)
-const isMobileOpen = ref(false)
+  const isSearchOpen = useState("search-open", () => false)
+  const isMobileOpen = ref(false)
 
-const metaKey = useMetaKey()
-const { open } = usePanels()
+  const metaKey = useMetaKey()
+  const { open } = usePanels()
 </script>
 
 <template>
@@ -39,7 +39,7 @@ const { open } = usePanels()
           Prebuilt pages
         </NuxtLink>
         <NuxtLink
-          to="/documentation"
+          to="/"
           class="inline-flex items-center justify-center px-6"
         >
           Documentation
@@ -85,10 +85,10 @@ const { open } = usePanels()
         <BaseButton
           rounded="lg"
           color="primary"
-          to="https://go.cssninja.io/buy-tairo"
+          to="/auth/login"
           class="ltablet:!flex !hidden lg:!flex"
         >
-          Buy Tairo
+          Login
         </BaseButton>
         <button
           type="button"

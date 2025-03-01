@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const year = new Date().getFullYear()
+  const year = new Date().getFullYear()
 </script>
 
 <template>
@@ -18,7 +18,7 @@ const year = new Date().getFullYear()
         width="28"
         loading="lazy"
         decoding="async"
-      >
+      />
     </NuxtLink>
     <div
       class="ltablet:flex-row mx-auto flex max-w-7xl flex-col items-center justify-between px-6 py-8 lg:flex-row"
@@ -43,7 +43,7 @@ const year = new Date().getFullYear()
         </NuxtLink>
 
         <NuxtLink
-          to="/documentation"
+          to="/"
           class="text-muted-600 hover:text-primary-500 dark:text-muted-200 dark:hover:text-primary-400 text-sm transition-colors duration-300"
         >
           Documentation

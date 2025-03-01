@@ -20,7 +20,7 @@
               </p>
               <div class="mt-8 flex items-center gap-2">
                 <BaseButton
-                  to="/documentation"
+                  to="/"
                   rounded="lg"
                   class="!h-11"
                 >

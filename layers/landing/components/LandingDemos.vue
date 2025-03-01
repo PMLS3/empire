@@ -1,156 +1,154 @@
 <script setup lang="ts">
-import type { RouteRecordRaw } from 'vue-router'
+  import type { RouteRecordRaw } from "vue-router"
 
-const props = withDefaults(
-  defineProps<{
-    limit?: number
-    cta?: boolean
-  }>(),
-  {
-    limit: undefined,
-    cta: true,
-  },
-)
-
-const route = useRoute()
-const router = useRouter()
-
-const onlyNew = computed({
-  get() {
-    return Boolean(route.query.new)
-  },
-  set(value) {
-    router.push({
-      query: {
-        ...route.query,
-        new: value ? '1' : undefined,
-      },
-    })
-  },
-})
-const selectedCategory = computed({
-  get() {
-    return route.query.category as string || ''
-  },
-  set(value) {
-    router.push({
-      query: {
-        ...route.query,
-        category: value ? value : undefined,
-      },
-    })
-  },
-})
-
-const demoPages = computed(() => {
-  const match: RouteRecordRaw[] = []
-
-  function traverseRoutes(routes: Readonly<RouteRecordRaw[]>) {
-    for (const route of routes) {
-      if (route.children) {
-        // recurse
-        traverseRoutes(route.children)
-      }
-      else if (
-        route.path.includes(':')
-        && Array.isArray(route.meta?.preview)
-      ) {
-        match.push(route)
-      }
-      else if (!route.path.includes(':') && route.meta?.preview) {
-        // has preview data
-        match.push(route)
-      }
+  const props = withDefaults(
+    defineProps<{
+      limit?: number
+      cta?: boolean
+    }>(),
+    {
+      limit: undefined,
+      cta: true,
     }
-  }
+  )
 
-  // start on top route
-  traverseRoutes(router.options.routes)
+  const route = useRoute()
+  const router = useRouter()
 
-  return match.sort((a, b) => {
-    if (a.meta?.preview?.order === undefined) return 0
-    if (b.meta?.preview?.order === undefined) return 0
-    if (a.meta.preview?.order < b.meta.preview?.order) return -1
-    if (a.meta.preview?.order > b.meta.preview?.order) return 1
-    return 0
+  const onlyNew = computed({
+    get() {
+      return Boolean(route.query.new)
+    },
+    set(value) {
+      router.push({
+        query: {
+          ...route.query,
+          new: value ? "1" : undefined,
+        },
+      })
+    },
   })
-})
-
-const categories = computed(() => {
-  const categories = new Set<string>()
-  let _demos = demoPages.value
-
-  if (onlyNew.value) {
-    _demos = _demos.filter(page => page.meta?.preview?.new)
-  }
-
-  function extractPreview(preview: any) {
-    if (!preview) {
-      return
-    }
-    if (Array.isArray(preview)) {
-      for (const item of preview) {
-        extractPreview(item)
-      }
-      return
-    }
-    if (!preview.categories) {
-      return
-    }
-    if (!Array.isArray(preview.categories)) {
-      return
-    }
-    for (const category of preview.categories) {
-      categories.add(category)
-    }
-  }
-
-  for (const route of _demos) {
-    extractPreview(route.meta?.preview)
-  }
-  return Array.from(categories).sort((a, b) => {
-    return a.localeCompare(b)
+  const selectedCategory = computed({
+    get() {
+      return (route.query.category as string) || ""
+    },
+    set(value) {
+      router.push({
+        query: {
+          ...route.query,
+          category: value ? value : undefined,
+        },
+      })
+    },
   })
-})
 
-const filteredDemos = computed(() => {
-  let _demos = demoPages.value
+  const demoPages = computed(() => {
+    const match: RouteRecordRaw[] = []
 
-  if (onlyNew.value) {
-    _demos = _demos.filter(page => page.meta?.preview?.new)
-  }
-
-  if (selectedCategory.value.length === 0) {
-    return _demos
-  }
-
-  function filterPreview(preview: any) {
-    if (!preview) {
-      return false
-    }
-    if (Array.isArray(preview)) {
-      for (const item of preview) {
-        if (filterPreview(item)) {
-          return true
+    function traverseRoutes(routes: Readonly<RouteRecordRaw[]>) {
+      for (const route of routes) {
+        if (route.children) {
+          // recurse
+          traverseRoutes(route.children)
+        } else if (
+          route.path.includes(":") &&
+          Array.isArray(route.meta?.preview)
+        ) {
+          match.push(route)
+        } else if (!route.path.includes(":") && route.meta?.preview) {
+          // has preview data
+          match.push(route)
         }
       }
-      return false
     }
-    if (!preview.categories) {
-      return false
-    }
-    if (!Array.isArray(preview.categories)) {
-      return false
-    }
-    return preview.categories.some((category: string) =>
-      selectedCategory.value.includes(category),
-    )
-  }
 
-  return _demos.filter((page) => {
-    return filterPreview(page.meta?.preview)
+    // start on top route
+    traverseRoutes(router.options.routes)
+
+    return match.sort((a, b) => {
+      if (a.meta?.preview?.order === undefined) return 0
+      if (b.meta?.preview?.order === undefined) return 0
+      if (a.meta.preview?.order < b.meta.preview?.order) return -1
+      if (a.meta.preview?.order > b.meta.preview?.order) return 1
+      return 0
+    })
   })
-})
+
+  const categories = computed(() => {
+    const categories = new Set<string>()
+    let _demos = demoPages.value
+
+    if (onlyNew.value) {
+      _demos = _demos.filter((page) => page.meta?.preview?.new)
+    }
+
+    function extractPreview(preview: any) {
+      if (!preview) {
+        return
+      }
+      if (Array.isArray(preview)) {
+        for (const item of preview) {
+          extractPreview(item)
+        }
+        return
+      }
+      if (!preview.categories) {
+        return
+      }
+      if (!Array.isArray(preview.categories)) {
+        return
+      }
+      for (const category of preview.categories) {
+        categories.add(category)
+      }
+    }
+
+    for (const route of _demos) {
+      extractPreview(route.meta?.preview)
+    }
+    return Array.from(categories).sort((a, b) => {
+      return a.localeCompare(b)
+    })
+  })
+
+  const filteredDemos = computed(() => {
+    let _demos = demoPages.value
+
+    if (onlyNew.value) {
+      _demos = _demos.filter((page) => page.meta?.preview?.new)
+    }
+
+    if (selectedCategory.value.length === 0) {
+      return _demos
+    }
+
+    function filterPreview(preview: any) {
+      if (!preview) {
+        return false
+      }
+      if (Array.isArray(preview)) {
+        for (const item of preview) {
+          if (filterPreview(item)) {
+            return true
+          }
+        }
+        return false
+      }
+      if (!preview.categories) {
+        return false
+      }
+      if (!Array.isArray(preview.categories)) {
+        return false
+      }
+      return preview.categories.some((category: string) =>
+        selectedCategory.value.includes(category)
+      )
+    }
+
+    return _demos.filter((page) => {
+      return filterPreview(page.meta?.preview)
+    })
+  })
 </script>
 
 <template>
@@ -189,14 +187,14 @@ const filteredDemos = computed(() => {
         >
           <ul class="space-y-3 lg:sticky lg:top-28">
             <li class="pb-4">
-              <BaseSwitchThin
+              <FormSwitchThin
                 v-model="onlyNew"
                 color="primary"
                 label="Only new"
               />
             </li>
             <li class="capitalize">
-              <BaseRadio
+              <FormRadio
                 v-model="selectedCategory"
                 value=""
                 color="primary"
@@ -208,7 +206,7 @@ const filteredDemos = computed(() => {
               :key="category"
               class="capitalize"
             >
-              <BaseRadio
+              <FormRadio
                 v-model="selectedCategory"
                 :value="category"
                 color="primary"

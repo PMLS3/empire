@@ -15,9 +15,6 @@
     "generate": "nuxt generate",
     "typecheck": "nuxt typecheck",
     "clean": "rimraf .nuxt .output node_modules"
-  },
-  "dependencies": {
-    "firebase": "^11.4.0",
-    "firebase-admin": "^13.1.0"
   }
+  
 }

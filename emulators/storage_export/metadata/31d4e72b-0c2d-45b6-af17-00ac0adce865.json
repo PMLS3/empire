@@ -1,0 +1,19 @@
+{
+  "name": "uploads/1739868597019-feature.jpeg",
+  "bucket": "one-person-empire-e8a1e.firebasestorage.app",
+  "metageneration": 1,
+  "generation": 1739868597085,
+  "contentType": "image/jpeg",
+  "storageClass": "STANDARD",
+  "contentDisposition": "inline",
+  "downloadTokens": [
+    "b89b223c-c658-4e0c-996a-c16753e4baf5"
+  ],
+  "etag": "OLGpXvUQlIy/gVaxympkt8uVY9g",
+  "customMetadata": {},
+  "timeCreated": "2025-02-18T08:49:57.085Z",
+  "updated": "2025-02-18T08:49:57.085Z",
+  "size": 331559,
+  "md5Hash": "xO/95EGUnVvKkaiHvqJo3g==",
+  "crc32c": "3643057987"
+}

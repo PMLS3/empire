@@ -1,81 +1,81 @@
 <script setup lang="ts">
-const { y } = useNinjaWindowScroll()
+  const { y } = useNinjaWindowScroll()
 
-const gaugePersonal = reactive(useGaugePersonal())
+  const gaugePersonal = reactive(useGaugePersonal())
 
-function useGaugePersonal() {
-  const { primary } = useTailwindColors()
-  const type = 'radialBar'
-  const height = 220
+  function useGaugePersonal() {
+    const { primary } = useTailwindColors()
+    const type = "radialBar"
+    const height = 220
 
-  const options = {
-    title: {
-      text: undefined,
-    },
-    chart: {
-      sparkline: {
-        enabled: true,
+    const options = {
+      title: {
+        text: undefined,
       },
-      toolbar: {
-        show: false,
-      },
-    },
-    colors: [primary.value],
-    plotOptions: {
-      radialBar: {
-        startAngle: -90,
-        endAngle: 90,
-        track: {
-          background: '#e7e7e7',
-          strokeWidth: '97%',
-          margin: 5, // margin is in pixels
-          dropShadow: {
-            enabled: false,
-            top: 2,
-            left: 0,
-            color: '#999',
-            opacity: 1,
-            blur: 2,
-          },
+      chart: {
+        sparkline: {
+          enabled: true,
         },
-        hollow: {
-          margin: 0,
-          size: '35%',
-        },
-        dataLabels: {
-          name: {
-            show: false,
-          },
-          value: {
-            offsetY: -2,
-            fontSize: '22px',
-          },
+        toolbar: {
+          show: false,
         },
       },
-    },
-    fill: {
-      type: 'gradient',
-      gradient: {
-        shade: 'light',
-        shadeIntensity: 0.1,
-        inverseColors: false,
-        opacityFrom: 1,
-        opacityTo: 1,
-        stops: [0, 50, 53, 91],
+      colors: [primary.value],
+      plotOptions: {
+        radialBar: {
+          startAngle: -90,
+          endAngle: 90,
+          track: {
+            background: "#e7e7e7",
+            strokeWidth: "97%",
+            margin: 5, // margin is in pixels
+            dropShadow: {
+              enabled: false,
+              top: 2,
+              left: 0,
+              color: "#999",
+              opacity: 1,
+              blur: 2,
+            },
+          },
+          hollow: {
+            margin: 0,
+            size: "35%",
+          },
+          dataLabels: {
+            name: {
+              show: false,
+            },
+            value: {
+              offsetY: -2,
+              fontSize: "22px",
+            },
+          },
+        },
       },
-    },
-    labels: ['Average Results'],
+      fill: {
+        type: "gradient",
+        gradient: {
+          shade: "light",
+          shadeIntensity: 0.1,
+          inverseColors: false,
+          opacityFrom: 1,
+          opacityTo: 1,
+          stops: [0, 50, 53, 91],
+        },
+      },
+      labels: ["Average Results"],
+    }
+
+    const series = shallowRef([76])
+
+    return {
+      type,
+      height,
+      options,
+      series,
+    }
   }
-
-  const series = shallowRef([76])
-
-  return {
-    type,
-    height,
-    options,
-    series,
-  }
-}
 </script>
 
 <template>
@@ -107,7 +107,8 @@ function useGaugePersonal() {
           The dashboard system that makes you say
           <span
             class="text-primary-500 font-hairline underline decoration-dotted underline-offset-4"
-          >wow</span>
+            >wow</span
+          >
         </BaseHeading>
         <BaseParagraph
           size="lg"
@@ -149,10 +150,7 @@ function useGaugePersonal() {
               <div
                 class="nui-mask nui-mask-blob bg-primary-500/10 flex size-12 items-center justify-center motion-safe:transition-colors motion-safe:duration-200"
               >
-                <Icon
-                  name="ph:house-duotone"
-                  class="text-primary-500 size-5"
-                />
+                <Icon name="ph:house-duotone" class="text-primary-500 size-5" />
               </div>
             </div>
             <div class="flex h-16 w-full items-center justify-center">
@@ -215,9 +213,7 @@ function useGaugePersonal() {
               >
                 <Icon name="lucide:menu" class="text-muted-400 size-5" />
               </div>
-              <BaseText class="hidden sm:inline-block">
-                My Dashboard
-              </BaseText>
+              <BaseText class="hidden sm:inline-block"> My Dashboard </BaseText>
             </div>
             <div class="flex h-full items-center justify-end gap-1">
               <div
@@ -261,11 +257,7 @@ function useGaugePersonal() {
               class="ltablet:gap-6 group-[&:not(.scrolled)]/landing:ltablet:mt-24 group-[&:not(.scrolled)]/landing:ptablet:mt-24 flex flex-col gap-6 sm:gap-3 lg:gap-4 group-[&:not(.scrolled)]/landing:lg:mt-24"
             >
               <!-- Widget -->
-              <BaseCard
-                rounded="lg"
-                elevated
-                class="flex flex-col p-6"
-              >
+              <BaseCard rounded="lg" elevated class="flex flex-col p-6">
                 <div class="mb-6 flex items-center justify-between">
                   <BaseHeading
                     as="h3"
@@ -295,12 +287,8 @@ function useGaugePersonal() {
             <!-- Col -->
             <div class="ltablet:gap-6 flex flex-col gap-6 sm:gap-3 lg:gap-4">
               <!-- Widget -->
-              <BaseCard
-                rounded="lg"
-                elevated
-                class="p-6"
-              >
-                <DemoInboxMessage
+              <BaseCard rounded="lg" elevated class="p-6">
+                <InboxMessage
                   picture="/img/avatars/10.svg"
                   name="Kendra W."
                   title="Design Project"
@@ -310,12 +298,8 @@ function useGaugePersonal() {
                 />
               </BaseCard>
               <!-- Widget -->
-              <BaseCard
-                rounded="lg"
-                elevated
-                class="p-6"
-              >
-                <DemoInfoBadges
+              <BaseCard rounded="lg" elevated class="p-6">
+                <InfoBadges
                   image="/img/illustrations/widgets/1.svg"
                   badge-small="/img/illustrations/widgets/3.svg"
                   badge-medium="/img/illustrations/widgets/2.svg"
@@ -329,20 +313,12 @@ function useGaugePersonal() {
               class="ltablet:gap-6 group-[&:not(.scrolled)]/landing:ltablet:mt-16 group-[&:not(.scrolled)]/landing:ptablet:mt-16 flex flex-col gap-6 sm:hidden sm:gap-3 lg:flex lg:gap-4 group-[&:not(.scrolled)]/landing:lg:mt-16"
             >
               <!-- Widget -->
-              <BaseCard
-                rounded="lg"
-                elevated
-                class="p-4"
-              >
-                <DemoTeamSearchCompact rounded="lg" />
+              <BaseCard rounded="lg" elevated class="p-4">
+                <TeamSearchCompact rounded="lg" />
               </BaseCard>
               <!-- Widget -->
-              <BaseCard
-                rounded="lg"
-                elevated
-                class="p-3"
-              >
-                <DemoVideoCompact rounded="lg" />
+              <BaseCard rounded="lg" elevated class="p-3">
+                <VideoCompact rounded="lg" />
               </BaseCard>
             </div>
             <!-- Col -->
@@ -350,12 +326,8 @@ function useGaugePersonal() {
               class="ltablet:gap-6 group-[&:not(.scrolled)]/landing:ltablet:mt-10 group-[&:not(.scrolled)]/landing:ptablet:mt-10 flex flex-col gap-6 sm:gap-3 lg:gap-4 group-[&:not(.scrolled)]/landing:lg:mt-10"
             >
               <!-- Widget -->
-              <BaseCard
-                rounded="lg"
-                elevated
-                class="p-6"
-              >
-                <DemoProgressCircle
+              <BaseCard rounded="lg" elevated class="p-6">
+                <ProgressCircle
                   image="/img/avatars/6.svg"
                   :title="`${y < 500 ? Math.trunc(y / 5) : 100}% completed!`"
                   text="Congrats, your efforts have been rewarded. Keep up like this!"
@@ -363,12 +335,8 @@ function useGaugePersonal() {
                 />
               </BaseCard>
               <!-- Widget -->
-              <BaseCard
-                rounded="lg"
-                elevated
-                class="p-6"
-              >
-                <DemoFollowersCompact />
+              <BaseCard rounded="lg" elevated class="p-6">
+                <FollowersCompact />
               </BaseCard>
             </div>
           </div>
@@ -382,11 +350,11 @@ function useGaugePersonal() {
 </template>
 
 <style scoped>
-.gridlines {
-  background-image: url(/img/illustrations/gridlines.svg);
-}
+  .gridlines {
+    background-image: url(/img/illustrations/gridlines.svg);
+  }
 
-.dark .gridlines {
-  background-image: url(/img/illustrations/gridlines-dark.svg);
-}
+  .dark .gridlines {
+    background-image: url(/img/illustrations/gridlines-dark.svg);
+  }
 </style>

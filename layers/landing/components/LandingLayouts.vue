@@ -131,7 +131,7 @@ const activeLayout = ref('sidebar')
                 decoding="async"
               >
               <NuxtLink
-                to="/documentation/setup/add-a-layout"
+                to="/"
                 class="border-muted-200 text-muted-600 dark:text-muted-400 hover:text-primary-500 dark:hover:text-primary-500 hover:border-primary-500 dark:bg-muted-950 dark:border-muted-800 dark:hover:border-primary-500 absolute start-6 top-6 inline-flex items-center gap-1 rounded-full border bg-white px-5 py-2 transition-colors duration-300"
               >
                 <span class="font-sans text-sm">How to use</span>

@@ -15,12 +15,16 @@
     "layers/*"
   ],
   "scripts": {
-    "dev": "pnpm --filter=app dev",
-    "build": "pnpm --filter=app build",
+    "dev": "NODE_OPTIONS=--max_old_space_size=8192 pnpm --filter=${filter} dev",
+    "build": "NODE_OPTIONS=--max_old_space_size=8192 pnpm --filter=${filter} build",
     "generate": "pnpm --filter=app generate",
     "demo:dev": "pnpm --filter=demo dev",
     "demo:build": "pnpm --filter=demo build",
     "clean:all": "pnpm -r clean && rimraf .nuxt .output node_modules",
+    "emulators": "firebase emulators:start --import=emulators",
+    "emulators-storage": "firebase emulators:start --only storage",
+    "emulators-export": "firebase emulators:export emulators",
+    "emulators-list": "pgrep -f firebase",
     "test": "run-p test:*",
     "test:tsc-demo": "pnpm --filter=demo typecheck",
     "test:lint": "eslint .",

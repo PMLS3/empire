@@ -2,6 +2,7 @@ packages:
   - .demo
   - .app
   - layers/*
+  - workspaces/*
 onlyBuiltDependencies:
   - '@parcel/watcher'
   - better-sqlite3
