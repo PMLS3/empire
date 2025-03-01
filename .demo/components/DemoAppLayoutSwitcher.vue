@@ -159,7 +159,7 @@ function switchMuted(color: (typeof mutedPresets)[number]) {
 </script>
 
 <template>
-  <TairoModal
+  <Modal
     :open="isSwitcherOpen"
     :size="canChangeLayout ? '2xl' : 'sm'"
     @close="isSwitcherOpen = false"
@@ -342,5 +342,5 @@ function switchMuted(color: (typeof mutedPresets)[number]) {
         </div>
       </div>
     </div>
-  </TairoModal>
+  </Modal>
 </template>

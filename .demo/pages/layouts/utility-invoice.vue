@@ -169,7 +169,7 @@ const totalData = computed(() => {
               class="border-muted-200 dark:border-muted-700 flex flex-col justify-between gap-y-8 border-b p-8 sm:flex-row sm:items-center"
             >
               <div class="flex items-center gap-4">
-                <TairoLogo class="text-primary-500 size-12" />
+                <Logo class="text-primary-500 size-12" />
                 <div class="">
                   <BaseHeading
                     as="h3"

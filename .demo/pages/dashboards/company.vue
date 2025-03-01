@@ -333,9 +333,9 @@ function toggleAllVisibleSelection() {
         </div>
         <!-- Widget -->
         <div class="col-span-12">
-          <TairoTable rounded="sm">
+          <Table rounded="sm">
             <template #header>
-              <TairoTableHeading uppercase class="px-4 py-6">
+              <TableHeading uppercase class="px-4 py-6">
                 <div class="flex items-center">
                   <BaseCheckbox
                     :model-value="isAllVisibleSelected"
@@ -348,26 +348,26 @@ function toggleAllVisibleSelection() {
                     @click="toggleAllVisibleSelection"
                   />
                 </div>
-              </TairoTableHeading>
-              <TairoTableHeading uppercase>
+              </TableHeading>
+              <TableHeading uppercase>
                 Collaborator
-              </TairoTableHeading>
-              <TairoTableHeading uppercase>
+              </TableHeading>
+              <TableHeading uppercase>
                 Expertise
-              </TairoTableHeading>
-              <TairoTableHeading uppercase>
+              </TableHeading>
+              <TableHeading uppercase>
                 Rate
-              </TairoTableHeading>
-              <TairoTableHeading uppercase>
+              </TableHeading>
+              <TableHeading uppercase>
                 Status
-              </TairoTableHeading>
-              <TairoTableHeading uppercase class="px-4 py-6">
+              </TableHeading>
+              <TableHeading uppercase class="px-4 py-6">
                 <span class="sr-only">View</span>
-              </TairoTableHeading>
+              </TableHeading>
             </template>
 
-            <TairoTableRow v-for="member in team" :key="member.id">
-              <TairoTableCell class="p-4">
+            <TableRow v-for="member in team" :key="member.id">
+              <TableCell class="p-4">
                 <div class="flex items-center">
                   <BaseCheckbox
                     v-model="selected"
@@ -377,8 +377,8 @@ function toggleAllVisibleSelection() {
                     color="primary"
                   />
                 </div>
-              </TairoTableCell>
-              <TairoTableCell>
+              </TableCell>
+              <TableCell>
                 <div class="flex items-center">
                   <BaseAvatar :src="member.src" size="sm" />
                   <div class="ms-3 leading-none">
@@ -390,12 +390,12 @@ function toggleAllVisibleSelection() {
                     </p>
                   </div>
                 </div>
-              </TairoTableCell>
-              <TairoTableCell light>
+              </TableCell>
+              <TableCell light>
                 {{ member.expertise }}
-              </TairoTableCell>
-              <TairoTableCell>${{ member.rate }}/hour</TairoTableCell>
-              <TairoTableCell>
+              </TableCell>
+              <TableCell>${{ member.rate }}/hour</TableCell>
+              <TableCell>
                 <BaseTag
                   v-if="member.status === 'Available'"
                   color="success"
@@ -423,17 +423,17 @@ function toggleAllVisibleSelection() {
                 >
                   {{ member.status }}
                 </BaseTag>
-              </TairoTableCell>
-              <TairoTableCell>
+              </TableCell>
+              <TableCell>
                 <a
                   href="#"
                   class="text-violet-500 transition-opacity duration-300 hover:opacity-75 dark:text-violet-400"
                 >
                   View
                 </a>
-              </TairoTableCell>
-            </TairoTableRow>
-          </TairoTable>
+              </TableCell>
+            </TableRow>
+          </Table>
         </div>
         <!-- Widget -->
         <div class="ptablet:col-span-6 col-span-12 sm:col-span-3">

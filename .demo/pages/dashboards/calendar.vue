@@ -221,7 +221,7 @@ const selectedEventFeatures = computed({
         to="/dashboards"
         class="flex size-16 items-center justify-center"
       >
-        <TairoLogo class="text-primary-600 h-10" />
+        <Logo class="text-primary-600 h-10" />
       </NuxtLink>
       <nav class="relative flex h-full flex-col">
         <NuxtLink
@@ -590,7 +590,7 @@ const selectedEventFeatures = computed({
               <Icon name="ph:gear-six-duotone" class="text-muted-400 size-5" />
             </button>
           </div>
-          <TairoSidebarTools />
+          <SidebarTools />
         </div>
 
         <!-- settings -->

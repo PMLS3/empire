@@ -16,7 +16,7 @@ const fake = ref('')
 
 <template>
   <div>
-    <TairoContentWrapper>
+    <ContentWrapper>
       <template #left>
         <BaseInput
           v-model="fake"
@@ -99,6 +99,6 @@ const fake = ref('')
           </BaseCard>
         </div>
       </div>
-    </TairoContentWrapper>
+    </ContentWrapper>
   </div>
 </template>

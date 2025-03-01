@@ -70,7 +70,7 @@ const { data, pending, error, refresh } = await useFetch('/api/profile')
           </BasePlaceholderPage>
         </div>
         <div v-else class="mx-auto max-w-lg space-y-20 py-8">
-          <TairoFormGroup
+          <FormGroup
             label="Languages"
             sublabel="How many languages do you speak?"
           >
@@ -194,8 +194,8 @@ const { data, pending, error, refresh } = await useFetch('/api/profile')
                 </BaseButtonIcon>
               </div>
             </div>
-          </TairoFormGroup>
-          <TairoFormGroup label="Skills" sublabel="Add your best skills">
+          </FormGroup>
+          <FormGroup label="Skills" sublabel="Add your best skills">
             <div v-if="data.personalInfo.skills.length === 0">
               <BasePlaceholderPage
                 title="No skills"
@@ -322,8 +322,8 @@ const { data, pending, error, refresh } = await useFetch('/api/profile')
                 </BaseButtonIcon>
               </div>
             </div>
-          </TairoFormGroup>
-          <TairoFormGroup label="Tools" sublabel="Add the tools you work with">
+          </FormGroup>
+          <FormGroup label="Tools" sublabel="Add the tools you work with">
             <div v-if="data.personalInfo.tools.length === 0">
               <BasePlaceholderPage
                 title="No tools"
@@ -444,10 +444,10 @@ const { data, pending, error, refresh } = await useFetch('/api/profile')
                 </BaseButtonIcon>
               </div>
             </div>
-          </TairoFormGroup>
+          </FormGroup>
         </div>
       </div>
     </BaseCard>
-    <TairoFormSave />
+    <FormSave />
   </form>
 </template>

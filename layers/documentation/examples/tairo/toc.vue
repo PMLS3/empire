@@ -1,18 +1,18 @@
 <template>
   <div class="relative flex">
     <div class="flex grow flex-col gap-1">
-      <TairoTocAnchor label="Example Anchor level 1" level="1" />
+      <TocAnchor label="Example Anchor level 1" level="1" />
 
-      <TairoTocAnchor label="Example Anchor level 2" level="2" />
+      <TocAnchor label="Example Anchor level 2" level="2" />
 
-      <TairoTocAnchor label="Example Anchor level 3" level="3" />
+      <TocAnchor label="Example Anchor level 3" level="3" />
 
       <BaseHeading
         as="h4"
         size="sm"
         weight="medium"
       >
-        <TairoTocAnchor
+        <TocAnchor
           label="Example Anchor level 4"
           level="4"
           prefix="•"
@@ -21,6 +21,6 @@
       </BaseHeading>
     </div>
 
-    <TairoToc />
+    <Toc />
   </div>
 </template>

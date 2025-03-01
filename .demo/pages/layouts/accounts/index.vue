@@ -101,7 +101,7 @@ function openAccountPanel(id: number, accounts: any) {
         >
           <div class="w-3/5">
             <div class="flex w-full items-center gap-3">
-              <TairoLogo class="text-muted-400 size-8" />
+              <Logo class="text-muted-400 size-8" />
               <BaseText size="sm" class="text-muted-800 dark:text-muted-200">
                 {{ account.type }} {{ account.number }}
               </BaseText>

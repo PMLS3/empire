@@ -1,7 +1,7 @@
 <template>
-  <TairoTable rounded="md">
+  <Table rounded="md">
     <template #header>
-      <TairoTableHeading uppercase class="p-4">
+      <TableHeading uppercase class="p-4">
         <div class="flex items-center">
           <BaseCheckbox
             v-model="selectAll"
@@ -9,31 +9,31 @@
             color="primary"
           />
         </div>
-      </TairoTableHeading>
+      </TableHeading>
 
-      <TairoTableHeading uppercase>
+      <TableHeading uppercase>
         Collaborator
-      </TairoTableHeading>
+      </TableHeading>
 
-      <TairoTableHeading uppercase>
+      <TableHeading uppercase>
         Expertise
-      </TairoTableHeading>
+      </TableHeading>
 
-      <TairoTableHeading uppercase>
+      <TableHeading uppercase>
         Rate
-      </TairoTableHeading>
+      </TableHeading>
 
-      <TairoTableHeading uppercase>
+      <TableHeading uppercase>
         Status
-      </TairoTableHeading>
+      </TableHeading>
 
-      <TairoTableHeading uppercase class="p-4">
+      <TableHeading uppercase class="p-4">
         <span class="sr-only">View</span>
-      </TairoTableHeading>
+      </TableHeading>
     </template>
 
-    <TairoTableRow v-for="member in team" :key="member.id">
-      <TairoTableCell class="p-4">
+    <TableRow v-for="member in team" :key="member.id">
+      <TableCell class="p-4">
         <div class="flex items-center">
           <BaseCheckbox
             v-model="selected"
@@ -42,19 +42,19 @@
             color="primary"
           />
         </div>
-      </TairoTableCell>
+      </TableCell>
 
-      <TairoTableCell>
+      <TableCell>
         {{ member.name }}
-      </TairoTableCell>
+      </TableCell>
 
-      <TairoTableCell light>
+      <TableCell light>
         {{ member.expertise }}
-      </TairoTableCell>
+      </TableCell>
 
-      <TairoTableCell>${{ member.rate }}/hour</TairoTableCell>
+      <TableCell>${{ member.rate }}/hour</TableCell>
 
-      <TairoTableCell>
+      <TableCell>
         <BaseTag
           v-if="member.status === 'Available'"
           color="success"
@@ -84,18 +84,18 @@
         >
           {{ member.status }}
         </BaseTag>
-      </TairoTableCell>
+      </TableCell>
 
-      <TairoTableCell>
+      <TableCell>
         <a
           href="#"
           class="text-primary-500 dark:text-primary-400 underline-offset-4 transition-opacity duration-300 hover:underline hover:opacity-75"
         >
           View
         </a>
-      </TairoTableCell>
-    </TairoTableRow>
-  </TairoTable>
+      </TableCell>
+    </TableRow>
+  </Table>
 </template>
 
 <script setup lang="ts">

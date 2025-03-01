@@ -16,7 +16,7 @@ const input = ref('')
 
 <template>
   <div>
-    <TairoContentWrapper>
+    <ContentWrapper>
       <template #left>
         <BaseInput
           v-model="input"
@@ -71,6 +71,6 @@ const input = ref('')
           </BaseCard>
         </div>
       </div>
-    </TairoContentWrapper>
+    </ContentWrapper>
   </div>
 </template>

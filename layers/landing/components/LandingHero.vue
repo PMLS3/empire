@@ -143,7 +143,7 @@ function useGaugePersonal() {
             class="ltablet:w-16 ltablet:flex dark:bg-muted-800 absolute left-0 top-0 hidden h-full w-20 flex-col bg-white group-[&.scrolled]/landing:translate-x-0 group-[&:not(.scrolled)]/landing:-translate-x-full group-[&.scrolled]/landing:opacity-100 group-[&:not(.scrolled)]/landing:opacity-0 motion-safe:transition-all motion-safe:duration-200 lg:flex"
           >
             <div class="flex h-20 w-full items-center justify-center">
-              <TairoLogo class="text-primary-500 size-8" />
+              <Logo class="text-primary-500 size-8" />
             </div>
             <div class="flex h-16 w-full items-center justify-center">
               <div

@@ -338,7 +338,7 @@ const onSubmit = handleSubmit(
                 <!--Form fields-->
                 <div class="space-y-12">
                   <!--Company info-->
-                  <TairoFormGroup
+                  <FormGroup
                     label="Company info"
                     sublabel="Basic info about the company"
                   >
@@ -482,10 +482,10 @@ const onSubmit = handleSubmit(
                         </Field>
                       </div>
                     </div>
-                  </TairoFormGroup>
+                  </FormGroup>
 
                   <!--Address info-->
-                  <TairoFormGroup
+                  <FormGroup
                     label="Mailing address"
                     sublabel="The address of the company"
                   >
@@ -648,10 +648,10 @@ const onSubmit = handleSubmit(
                         </Field>
                       </div>
                     </div>
-                  </TairoFormGroup>
+                  </FormGroup>
 
                   <!--Address info-->
-                  <TairoFormGroup
+                  <FormGroup
                     label="Legal address"
                     sublabel="The legal address of the company"
                   >
@@ -814,7 +814,7 @@ const onSubmit = handleSubmit(
                         </Field>
                       </div>
                     </div>
-                  </TairoFormGroup>
+                  </FormGroup>
 
                   <div
                     class="mt-5 flex flex-col-reverse gap-y-4 text-end md:block md:space-x-3"

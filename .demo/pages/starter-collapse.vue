@@ -6,7 +6,7 @@ definePageMeta({
 </script>
 
 <template>
-  <TairoCollapseLayout>
+  <CollapseLayout>
     <div />
-  </TairoCollapseLayout>
+  </CollapseLayout>
 </template>

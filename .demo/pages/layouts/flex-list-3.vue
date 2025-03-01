@@ -58,7 +58,7 @@ function difficultyLabel(itemDifficulty: number) {
 
 <template>
   <div>
-    <TairoContentWrapperTabbed
+    <ContentWrapperTabbed
       :labels="['All', 'Saved']"
       reverse
       rounded="lg"
@@ -238,6 +238,6 @@ function difficultyLabel(itemDifficulty: number) {
           </template>
         </BasePlaceholderPage>
       </template>
-    </TairoContentWrapperTabbed>
+    </ContentWrapperTabbed>
   </div>
 </template>

@@ -19,7 +19,7 @@ const props = withDefaults(
           props.shape === 'curved' ? 'rounded-lg' : '',
         ]"
       >
-        <TairoImageZoom
+        <ImageZoom
           src="/img/illustrations/dashboards/hobbies/hobby-3.svg"
           alt="Widget image"
           :class="[

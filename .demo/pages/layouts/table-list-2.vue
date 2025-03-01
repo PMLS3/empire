@@ -41,7 +41,7 @@ const { data, pending, error, refresh } = await useFetch('/api/products', {
 
 <template>
   <div>
-    <TairoContentWrapper>
+    <ContentWrapper>
       <template #left>
         <BaseInput
           v-model="filter"
@@ -96,33 +96,33 @@ const { data, pending, error, refresh } = await useFetch('/api/products', {
         </div>
         <div v-else>
           <div class="w-full">
-            <TairoTable rounded="sm">
+            <Table rounded="sm">
               <template #header>
-                <TairoTableHeading uppercase spaced>
+                <TableHeading uppercase spaced>
                   Product
-                </TairoTableHeading>
-                <TairoTableHeading uppercase spaced>
+                </TableHeading>
+                <TableHeading uppercase spaced>
                   Name
-                </TairoTableHeading>
-                <TairoTableHeading uppercase spaced>
+                </TableHeading>
+                <TableHeading uppercase spaced>
                   Sku
-                </TairoTableHeading>
-                <TairoTableHeading uppercase spaced>
+                </TableHeading>
+                <TableHeading uppercase spaced>
                   Price
-                </TairoTableHeading>
-                <TairoTableHeading uppercase spaced>
+                </TableHeading>
+                <TableHeading uppercase spaced>
                   Stock
-                </TairoTableHeading>
-                <TairoTableHeading uppercase spaced>
+                </TableHeading>
+                <TableHeading uppercase spaced>
                   Category
-                </TairoTableHeading>
-                <TairoTableHeading uppercase spaced>
+                </TableHeading>
+                <TableHeading uppercase spaced>
                   Action
-                </TairoTableHeading>
+                </TableHeading>
               </template>
 
-              <TairoTableRow v-for="item in data?.data" :key="item.id">
-                <TairoTableCell spaced>
+              <TableRow v-for="item in data?.data" :key="item.id">
+                <TableCell spaced>
                   <div class="flex items-center">
                     <img
                       :src="item.image"
@@ -130,31 +130,31 @@ const { data, pending, error, refresh } = await useFetch('/api/products', {
                       class="max-w-[80px]"
                     >
                   </div>
-                </TairoTableCell>
-                <TairoTableCell spaced>
+                </TableCell>
+                <TableCell spaced>
                   {{ item.name }}
-                </TairoTableCell>
-                <TairoTableCell light spaced>
+                </TableCell>
+                <TableCell light spaced>
                   {{ item.sku }}
-                </TairoTableCell>
-                <TairoTableCell spaced>
+                </TableCell>
+                <TableCell spaced>
                   <span class="font-semibold">${{ item.price }}</span>
-                </TairoTableCell>
-                <TairoTableCell light spaced>
+                </TableCell>
+                <TableCell light spaced>
                   {{ item.stock }}
-                </TairoTableCell>
-                <TairoTableCell light spaced>
+                </TableCell>
+                <TableCell light spaced>
                   <span class="text-primary-500 text-sm font-medium">
                     {{ item.category }}
                   </span>
-                </TairoTableCell>
-                <TairoTableCell spaced>
+                </TableCell>
+                <TableCell spaced>
                   <BaseButtonAction muted>
                     Manage
                   </BaseButtonAction>
-                </TairoTableCell>
-              </TairoTableRow>
-            </TairoTable>
+                </TableCell>
+              </TableRow>
+            </Table>
           </div>
           <div class="mt-6">
             <BasePagination
@@ -166,6 +166,6 @@ const { data, pending, error, refresh } = await useFetch('/api/products', {
           </div>
         </div>
       </div>
-    </TairoContentWrapper>
+    </ContentWrapper>
   </div>
 </template>

@@ -59,7 +59,7 @@ function toggleAllVisibleSelection() {
 
 <template>
   <div>
-    <TairoContentWrapper>
+    <ContentWrapper>
       <template #left>
         <BaseInput
           v-model="filter"
@@ -115,9 +115,9 @@ function toggleAllVisibleSelection() {
         </div>
         <div v-else>
           <div class="w-full">
-            <TairoTable rounded="sm">
+            <Table rounded="sm">
               <template #header>
-                <TairoTableHeading
+                <TableHeading
                   uppercase
                   spaced
                   class="p-4"
@@ -134,29 +134,29 @@ function toggleAllVisibleSelection() {
                       @click="toggleAllVisibleSelection"
                     />
                   </div>
-                </TairoTableHeading>
-                <TairoTableHeading uppercase spaced>
+                </TableHeading>
+                <TableHeading uppercase spaced>
                   Type
-                </TairoTableHeading>
-                <TairoTableHeading uppercase spaced>
+                </TableHeading>
+                <TableHeading uppercase spaced>
                   Name
-                </TairoTableHeading>
-                <TairoTableHeading uppercase spaced>
+                </TableHeading>
+                <TableHeading uppercase spaced>
                   Size
-                </TairoTableHeading>
-                <TairoTableHeading uppercase spaced>
+                </TableHeading>
+                <TableHeading uppercase spaced>
                   Version
-                </TairoTableHeading>
-                <TairoTableHeading uppercase spaced>
+                </TableHeading>
+                <TableHeading uppercase spaced>
                   Last Updated
-                </TairoTableHeading>
-                <TairoTableHeading uppercase spaced>
+                </TableHeading>
+                <TableHeading uppercase spaced>
                   Action
-                </TairoTableHeading>
+                </TableHeading>
               </template>
 
-              <TairoTableRow v-if="selected.length > 0" :hoverable="false">
-                <TairoTableCell
+              <TableRow v-if="selected.length > 0" :hoverable="false">
+                <TableCell
                   colspan="6"
                   class="bg-success-100 text-success-700 dark:bg-success-700 dark:text-success-100 p-4"
                 >
@@ -166,11 +166,11 @@ function toggleAllVisibleSelection() {
                     href="#"
                     class="outline-none hover:underline focus:underline"
                   >Click here to everything</a>
-                </TairoTableCell>
-              </TairoTableRow>
+                </TableCell>
+              </TableRow>
 
-              <TairoTableRow v-for="item in data?.data" :key="item.id">
-                <TairoTableCell spaced>
+              <TableRow v-for="item in data?.data" :key="item.id">
+                <TableCell spaced>
                   <div class="flex items-center">
                     <BaseCheckbox
                       v-model="selected"
@@ -180,24 +180,24 @@ function toggleAllVisibleSelection() {
                       color="primary"
                     />
                   </div>
-                </TairoTableCell>
-                <TairoTableCell light spaced>
+                </TableCell>
+                <TableCell light spaced>
                   <img
                     :src="item.icon"
                     :alt="item.name"
                     class="max-w-[46px]"
                   >
-                </TairoTableCell>
-                <TairoTableCell spaced>
+                </TableCell>
+                <TableCell spaced>
                   <span class="font-medium">{{ item.name }}</span>
-                </TairoTableCell>
-                <TairoTableCell light spaced>
+                </TableCell>
+                <TableCell light spaced>
                   {{ item.size }}
-                </TairoTableCell>
-                <TairoTableCell light spaced>
+                </TableCell>
+                <TableCell light spaced>
                   {{ item.version }}
-                </TairoTableCell>
-                <TairoTableCell spaced>
+                </TableCell>
+                <TableCell spaced>
                   <div class="flex items-center">
                     <BaseAvatar
                       :src="item.author.picture"
@@ -213,14 +213,14 @@ function toggleAllVisibleSelection() {
                       </p>
                     </div>
                   </div>
-                </TairoTableCell>
-                <TairoTableCell spaced>
+                </TableCell>
+                <TableCell spaced>
                   <BaseButtonAction muted>
                     Manage
                   </BaseButtonAction>
-                </TairoTableCell>
-              </TairoTableRow>
-            </TairoTable>
+                </TableCell>
+              </TableRow>
+            </Table>
           </div>
           <div class="mt-6">
             <BasePagination
@@ -232,6 +232,6 @@ function toggleAllVisibleSelection() {
           </div>
         </div>
       </div>
-    </TairoContentWrapper>
+    </ContentWrapper>
   </div>
 </template>

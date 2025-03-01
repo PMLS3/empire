@@ -26,9 +26,9 @@ const docNav = computed(
 </script>
 
 <template>
-  <TairoSubsidebar>
+  <Subsidebar>
     <template #header>
-      <TairoSubsidebarHeader />
+      <SubsidebarHeader />
     </template>
 
     <div class="pt-2">
@@ -52,5 +52,5 @@ const docNav = computed(
         </div>
       </template>
     </div>
-  </TairoSubsidebar>
+  </Subsidebar>
 </template>

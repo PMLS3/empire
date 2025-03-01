@@ -614,7 +614,7 @@ async function submitMessage() {
           class="ltablet:flex hidden items-center gap-2 lg:flex"
           aria-label="Go to Tairo homepage"
         >
-          <TairoLogoText class="text-primary-500 h-6 dark:text-white" />
+          <LogoText class="text-primary-500 h-6 dark:text-white" />
         </NuxtLink>
       </div>
       <div
@@ -658,8 +658,8 @@ async function submitMessage() {
             class="flex items-center gap-2"
             aria-label="Go to Tairo homepage"
           >
-            <TairoLogo class="text-muted-800 h-9 dark:text-white" />
-            <TairoLogoText class="text-muted-800 h-3 dark:text-white" />
+            <Logo class="text-muted-800 h-9 dark:text-white" />
+            <LogoText class="text-muted-800 h-3 dark:text-white" />
           </NuxtLink>
           <BaseButtonClose
             color="muted"

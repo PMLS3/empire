@@ -22,7 +22,7 @@ const isModalXlOpen = ref(false)
   </div>
 
   <!-- Modal component -->
-  <TairoModal
+  <Modal
     :open="isModalLgOpen"
     size="lg"
     @close="isModalLgOpen = false"
@@ -80,10 +80,10 @@ const isModalXlOpen = ref(false)
         </div>
       </div>
     </template>
-  </TairoModal>
+  </Modal>
 
   <!-- Modal component -->
-  <TairoModal
+  <Modal
     :open="isModalXlOpen"
     size="xl"
     @close="isModalXlOpen = false"
@@ -139,5 +139,5 @@ const isModalXlOpen = ref(false)
         </div>
       </div>
     </template>
-  </TairoModal>
+  </Modal>
 </template>

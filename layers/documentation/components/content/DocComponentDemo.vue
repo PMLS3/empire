@@ -102,11 +102,11 @@ async function loadDemo() {
         weight="medium"
         class="text-muted-800 dark:text-white"
       >
-        <TairoTocAnchor :label="props.title">
+        <TocAnchor :label="props.title">
           <template #prefix>
             <Icon name="lucide:hash" class="size-4" />
           </template>
-        </TairoTocAnchor>
+        </TocAnchor>
       </BaseHeading>
 
       <div

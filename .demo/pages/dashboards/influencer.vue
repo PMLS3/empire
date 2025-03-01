@@ -373,7 +373,7 @@ const activeTab = ref('tab-1')
           <div
             class="ltablet:justify-start flex justify-center gap-4 lg:justify-start"
           >
-            <TairoPopover size="sm">
+            <Popover size="sm">
               <div
                 class="dark:bg-muted-700 shadow-muted-300/40 dark:shadow-muted-900/20 flex size-10 items-center justify-center rounded-full bg-white shadow-xl"
               >
@@ -385,7 +385,7 @@ const activeTab = ref('tab-1')
               </div>
 
               <template #content>
-                <TairoPopoverContentHelp
+                <PopoverContentHelp
                   title="On Fire"
                   subtitle="You are on rampage"
                   text="You have been on fire for the last 7 days. Keep up the good
@@ -394,8 +394,8 @@ const activeTab = ref('tab-1')
                   icon-color="danger"
                 />
               </template>
-            </TairoPopover>
-            <TairoPopover size="sm">
+            </Popover>
+            <Popover size="sm">
               <div
                 class="dark:bg-muted-700 shadow-muted-300/40 dark:shadow-muted-900/20 flex size-10 items-center justify-center rounded-full bg-white shadow-xl"
               >
@@ -407,7 +407,7 @@ const activeTab = ref('tab-1')
               </div>
 
               <template #content>
-                <TairoPopoverContentHelp
+                <PopoverContentHelp
                   title="Veteran"
                   subtitle="Way to go soldier"
                   text="You posted more than 250 posts. You are now a post veteran!"
@@ -415,8 +415,8 @@ const activeTab = ref('tab-1')
                   icon-color="success"
                 />
               </template>
-            </TairoPopover>
-            <TairoPopover size="sm">
+            </Popover>
+            <Popover size="sm">
               <div
                 class="dark:bg-muted-700 shadow-muted-300/40 dark:shadow-muted-900/20 flex size-10 items-center justify-center rounded-full bg-white shadow-xl"
               >
@@ -428,7 +428,7 @@ const activeTab = ref('tab-1')
               </div>
 
               <template #content>
-                <TairoPopoverContentHelp
+                <PopoverContentHelp
                   title="Champion"
                   subtitle="Hail to the king"
                   text="You have more than 100k followers. You are a champion!"
@@ -436,7 +436,7 @@ const activeTab = ref('tab-1')
                   icon-color="warning"
                 />
               </template>
-            </TairoPopover>
+            </Popover>
           </div>
         </div>
       </div>

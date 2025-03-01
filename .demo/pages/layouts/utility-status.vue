@@ -23,7 +23,7 @@ definePageMeta({
           to="/"
           class="text-muted-400 hover:text-primary-500 dark:text-muted-700 dark:hover:text-primary-500 transition-colors duration-300"
         >
-          <TairoLogoText class="h-7" />
+          <LogoText class="h-7" />
         </NuxtLink>
         <div class="flex items-center gap-4">
           <BaseThemeToggle />

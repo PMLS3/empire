@@ -439,7 +439,7 @@ const amount = ref('')
       <div v-else-if="step === 4" class="flex w-full items-center">
         <div class="mx-auto w-full max-w-md py-6 text-center">
           <div class="text-primary-500 mx-auto mb-4 size-14">
-            <TairoCheckAnimated color="primary" size="lg" />
+            <CheckAnimated color="primary" size="lg" />
           </div>
           <BaseHeading
             as="h2"

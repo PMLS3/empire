@@ -28,7 +28,7 @@ const year = new Date().getFullYear()
         aria-label="Go to Tairo homepage"
         class="ltablet:w-1/5 block w-full lg:w-1/5"
       >
-        <TairoLogoText
+        <LogoText
           class="text-muted-300 ltablet:mx-0 mx-auto h-6 transition-all duration-200 lg:mx-0"
         />
       </NuxtLink>

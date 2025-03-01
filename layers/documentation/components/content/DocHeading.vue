@@ -18,7 +18,7 @@ const props = withDefaults(
     size="lg"
     class="not-prose mt-12"
   >
-    <TairoTocAnchor
+    <TocAnchor
       :label="props.label"
       :level="props.level"
       prefix="•"

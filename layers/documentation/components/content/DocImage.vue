@@ -2,5 +2,5 @@
 </script>
 
 <template>
-  <TairoImageZoom class="border-muted-200 dark:border-muted-700 rounded-lg border" />
+  <ImageZoom class="border-muted-200 dark:border-muted-700 rounded-lg border" />
 </template>

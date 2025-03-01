@@ -18,7 +18,7 @@ const props = withDefaults(
       <div class="flex w-full items-center justify-between py-5">
         <div class="flex flex-1 items-center">
           <NuxtLink to="/dashboards" class="flex items-center gap-2">
-            <TairoLogoText
+            <LogoText
               class="text-primary-500 hidden h-7 lg:block dark:text-white"
             />
           </NuxtLink>

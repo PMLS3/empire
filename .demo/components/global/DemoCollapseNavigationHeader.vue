@@ -9,7 +9,7 @@ const isSearchOpen = useState('search-open', () => false)
     <div class="flex size-16 items-center justify-center">
       <slot name="logo">
         <NuxtLink to="/" class="flex items-center justify-center">
-          <TairoLogo class="text-primary-500 size-10" />
+          <Logo class="text-primary-500 size-10" />
         </NuxtLink>
       </slot>
     </div>

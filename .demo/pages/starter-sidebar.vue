@@ -6,7 +6,7 @@ definePageMeta({
 </script>
 
 <template>
-  <TairoSidebarLayout>
+  <SidebarLayout>
     <div />
-  </TairoSidebarLayout>
+  </SidebarLayout>
 </template>

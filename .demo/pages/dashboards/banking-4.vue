@@ -291,7 +291,7 @@ function setAccount(account: any) {
                 @click="openDropdown()"
               >
                 <span class="flex w-full items-center gap-3 text-start">
-                  <TairoLogo class="text-primary-500 size-8" />
+                  <Logo class="text-primary-500 size-8" />
                   <div>
                     <BaseText
                       size="sm"
@@ -333,7 +333,7 @@ function setAccount(account: any) {
                         class="hover:bg-muted-100 dark:hover:bg-muted-900 flex w-full items-center gap-3 rounded-lg px-4 py-2 text-start transition-colors duration-300"
                         @click="setAccount(account)"
                       >
-                        <TairoLogo
+                        <Logo
                           class="text-muted-400 dark:text-muted-100 size-8"
                         />
                         <span class="block">

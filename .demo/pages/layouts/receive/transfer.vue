@@ -166,7 +166,7 @@ function setAccount(account: any) {
                 :class="[errors.fields.account ? '!border-danger-500' : '']"
               >
                 <span class="flex w-full items-center gap-3 text-start">
-                  <TairoLogo v-if="request.account" class="text-primary-500 size-8" />
+                  <Logo v-if="request.account" class="text-primary-500 size-8" />
                   <Icon
                     v-else
                     name="lucide:wallet"
@@ -205,7 +205,7 @@ function setAccount(account: any) {
               @click="setAccount(account)"
             >
               <template #start>
-                <TairoLogo
+                <Logo
                   class="text-muted-300 dark:text-muted-700 group-hover:text-primary-500 size-8"
                 />
               </template>
@@ -303,7 +303,7 @@ function setAccount(account: any) {
                 :class="[errors.fields.account ? '!border-danger-500' : '']"
               >
                 <span class="flex w-full items-center gap-3 text-start">
-                  <TairoLogo v-if="request.account" class="text-primary-500 size-8" />
+                  <Logo v-if="request.account" class="text-primary-500 size-8" />
                   <Icon
                     v-else
                     name="lucide:wallet"
@@ -342,7 +342,7 @@ function setAccount(account: any) {
               @click="setAccount(account)"
             >
               <template #start>
-                <TairoLogo
+                <Logo
                   class="text-muted-300 dark:text-muted-700 group-hover:text-primary-500 size-8"
                 />
               </template>
@@ -396,7 +396,7 @@ function setAccount(account: any) {
               :class="[errors.fields.account ? '!border-danger-500' : '']"
             >
               <span class="flex w-full items-center gap-3 text-start">
-                <TairoLogo v-if="request.account" class="text-primary-500 size-8" />
+                <Logo v-if="request.account" class="text-primary-500 size-8" />
                 <Icon
                   v-else
                   name="lucide:wallet"
@@ -435,7 +435,7 @@ function setAccount(account: any) {
             @click="setAccount(account)"
           >
             <template #start>
-              <TairoLogo
+              <Logo
                 class="text-muted-300 dark:text-muted-700 group-hover:text-primary-500 size-8"
               />
             </template>

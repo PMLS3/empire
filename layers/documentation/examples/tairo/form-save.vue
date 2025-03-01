@@ -6,7 +6,7 @@
       class="space-y-10"
       @submit.prevent
     >
-      <TairoFormGroup label="Who are you?" sublabel="Let us know your name">
+      <FormGroup label="Who are you?" sublabel="Let us know your name">
         <div class="grid grid-cols-12 gap-3">
           <div class="col-span-12 sm:col-span-6">
             <BaseInput
@@ -32,9 +32,9 @@
             />
           </div>
         </div>
-      </TairoFormGroup>
+      </FormGroup>
 
-      <TairoFormGroup label="Where do you live?" sublabel="Let us know your location">
+      <FormGroup label="Where do you live?" sublabel="Let us know your location">
         <div class="grid grid-cols-12 gap-3">
           <div class="col-span-12 sm:col-span-6">
             <BaseSelect v-model="country" label="Country">
@@ -84,9 +84,9 @@
             />
           </div>
         </div>
-      </TairoFormGroup>
+      </FormGroup>
 
-      <TairoFormSave />
+      <FormSave />
     </form>
   </div>
 </template>

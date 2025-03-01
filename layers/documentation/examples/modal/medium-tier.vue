@@ -17,7 +17,7 @@
   </div>
 
   <!-- Modal component -->
-  <TairoModal
+  <Modal
     :open="isModalLgOpen"
     size="lg"
     @close="isModalLgOpen = false"
@@ -72,10 +72,10 @@
         </div>
       </div>
     </template>
-  </TairoModal>
+  </Modal>
 
   <!-- Modal component -->
-  <TairoModal
+  <Modal
     :open="isModalXlOpen"
     size="xl"
     @close="isModalXlOpen = false"
@@ -129,7 +129,7 @@
         </div>
       </div>
     </template>
-  </TairoModal>
+  </Modal>
 </template>
 
 <script setup lang="ts">

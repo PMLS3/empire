@@ -14,7 +14,7 @@ icon:
 title: Tairo Table of content
 demo: '#examples/tairo/toc.vue'
 ---
-Tairo's table of contents component provides an easy way to build in-page navigation, the `<TairoTocAnchor>` to declare items, they are then collected and displayed in `<TairoToc>`
+Tairo's table of contents component provides an easy way to build in-page navigation, the `<TocAnchor>` to declare items, they are then collected and displayed in `<Toc>`
 ::
 
 :doc-component-meta{name="TairoToc"}

@@ -5,7 +5,7 @@
       method="POST"
       @submit.prevent
     >
-      <TairoFormGroup label="Who are you?" sublabel="Let us know your name">
+      <FormGroup label="Who are you?" sublabel="Let us know your name">
         <div class="grid grid-cols-12 gap-3">
           <div class="col-span-12 sm:col-span-6">
             <BaseInput
@@ -31,7 +31,7 @@
             />
           </div>
         </div>
-      </TairoFormGroup>
+      </FormGroup>
     </form>
   </div>
 </template>

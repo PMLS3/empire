@@ -27,7 +27,7 @@ onClickOutside(target, () => (open.value = false))
           to="/dashboards"
           class="border-muted-200 dark:border-muted-700 flex w-14 items-center justify-center border-r pe-6"
         >
-          <TairoLogo class="text-primary-600 h-10 shrink-0" />
+          <Logo class="text-primary-600 h-10 shrink-0" />
         </NuxtLink>
         <div class="hidden items-center gap-2 ps-6 font-sans sm:flex">
           <p class="text-muted-500 dark:text-muted-400">

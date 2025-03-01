@@ -73,7 +73,7 @@ const showStackTrace = ref(false)
 </script>
 
 <template>
-  <TairoSidebarLayout>
+  <SidebarLayout>
     <template #toolbar-title>
       {{ app.tairo?.title }}
     </template>
@@ -177,7 +177,7 @@ const showStackTrace = ref(false)
         <!-- eslint-enable vue/no-v-html -->
       </BaseCard>
     </div>
-  </TairoSidebarLayout>
+  </SidebarLayout>
 </template>
 
 <style>

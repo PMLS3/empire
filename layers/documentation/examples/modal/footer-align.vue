@@ -38,7 +38,7 @@
   </div>
 
   <!-- Modal component -->
-  <TairoModal
+  <Modal
     :open="isModalStartOpen"
     size="md"
     footer-align="start"
@@ -94,10 +94,10 @@
         </div>
       </div>
     </template>
-  </TairoModal>
+  </Modal>
 
   <!-- Modal component -->
-  <TairoModal
+  <Modal
     :open="isModalEndOpen"
     size="md"
     footer-align="end"
@@ -153,10 +153,10 @@
         </div>
       </div>
     </template>
-  </TairoModal>
+  </Modal>
 
   <!-- Modal component -->
-  <TairoModal
+  <Modal
     :open="isModalCenterOpen"
     size="md"
     footer-align="center"
@@ -212,10 +212,10 @@
         </div>
       </div>
     </template>
-  </TairoModal>
+  </Modal>
 
   <!-- Modal component -->
-  <TairoModal
+  <Modal
     :open="isModalBetweenOpen"
     size="md"
     footer-align="between"
@@ -275,10 +275,10 @@
         </div>
       </div>
     </template>
-  </TairoModal>
+  </Modal>
 
   <!-- Modal component -->
-  <TairoModal
+  <Modal
     :open="isModalBodyOpen"
     size="md"
     @close="isModalBodyOpen = false"
@@ -314,7 +314,7 @@
         </p>
       </div>
     </div>
-  </TairoModal>
+  </Modal>
 </template>
 
 <script setup lang="ts">

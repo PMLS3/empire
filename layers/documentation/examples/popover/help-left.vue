@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-wrap items-end gap-6">
-    <TairoPopover
+    <Popover
       size="sm"
       fixed
     >
@@ -11,7 +11,7 @@
       </span>
 
       <template #content>
-        <TairoPopoverContentHelp
+        <PopoverContentHelp
           title="Cookies"
           subtitle="Managing cookies"
           text="Lorem ipsum dolor sit amet, consectetur adipiscing elit solor
@@ -19,9 +19,9 @@
           icon="lucide:cookie"
         />
       </template>
-    </TairoPopover>
+    </Popover>
 
-    <TairoPopover size="sm">
+    <Popover size="sm">
       <span class="text-muted-500 flex items-center">
         <Icon name="lucide:help-circle" class="me-1 size-4" />
 
@@ -29,7 +29,7 @@
       </span>
 
       <template #content>
-        <TairoPopoverContentHelp
+        <PopoverContentHelp
           title="Dashboard"
           subtitle="Adding new widgets"
           text="Lorem ipsum dolor sit amet, consectetur adipiscing elit solor
@@ -38,6 +38,6 @@
           icon-color="success"
         />
       </template>
-    </TairoPopover>
+    </Popover>
   </div>
 </template>

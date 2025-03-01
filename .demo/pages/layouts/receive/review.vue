@@ -142,7 +142,7 @@ onBeforeMount(checkPreviousSteps)
             class="dark:bg-muted-800 border-muted-200 dark:border-muted-700 w-full rounded-xl border bg-white p-4"
           >
             <div class="flex w-full items-center gap-3 text-start">
-              <TairoLogo class="text-primary-500 size-8" />
+              <Logo class="text-primary-500 size-8" />
               <div>
                 <BaseText
                   size="sm"
@@ -205,7 +205,7 @@ onBeforeMount(checkPreviousSteps)
     <div v-else>
       <div class="mx-auto w-full max-w-md py-6 text-center">
         <div class="text-primary-500 mx-auto mb-4 size-14">
-          <TairoCheckAnimated color="primary" size="lg" />
+          <CheckAnimated color="primary" size="lg" />
         </div>
         <BaseHeading
           as="h2"

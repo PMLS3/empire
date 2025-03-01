@@ -1,6 +1,6 @@
 <template>
   <div class="flex items-end gap-6">
-    <TairoSidebarTools />
+    <SidebarTools />
   </div>
 </template>
 

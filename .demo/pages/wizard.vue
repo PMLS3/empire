@@ -130,7 +130,7 @@ const { handleSubmit, currentStepId } = provideMultiStepForm({
 </script>
 
 <template>
-  <TairoSidebarLayout
+  <SidebarLayout
     :toolbar="false"
     :sidebar="false"
     class="bg-muted-100 dark:bg-muted-900 min-h-screen w-full"
@@ -158,5 +158,5 @@ const { handleSubmit, currentStepId } = provideMultiStepForm({
       </div>
       <DemoWizardButtons />
     </form>
-  </TairoSidebarLayout>
+  </SidebarLayout>
 </template>

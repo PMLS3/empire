@@ -166,13 +166,13 @@ const metaKey = useMetaKey()
         v-if="!pending && data && data.toc !== false"
         class="relative hidden lg:me-6 lg:block lg:w-1/4 xl:me-0"
       >
-        <TairoToc :key="`toc-${data._path}`" class="fixed pb-20 pe-1 ps-20 pt-2">
+        <Toc :key="`toc-${data._path}`" class="fixed pb-20 pe-1 ps-20 pt-2">
           <template #nav-end>
             <div
               class="dark:bg-muted-900 bg-muted-100 pointer-events-none fixed bottom-0 z-10 h-20 w-[212px] blur-xl"
             />
           </template>
-        </TairoToc>
+        </Toc>
       </div>
     </div>
   </div>

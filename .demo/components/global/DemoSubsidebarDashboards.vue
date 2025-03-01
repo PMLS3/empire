@@ -251,11 +251,11 @@ const navigation = [
 </script>
 
 <template>
-  <TairoSubsidebar>
+  <Subsidebar>
     <template #header>
-      <TairoSubsidebarHeader />
+      <SubsidebarHeader />
     </template>
 
-    <TairoSubsidebarMenu :navigation="navigation" />
-  </TairoSubsidebar>
+    <SubsidebarMenu :navigation="navigation" />
+  </Subsidebar>
 </template>

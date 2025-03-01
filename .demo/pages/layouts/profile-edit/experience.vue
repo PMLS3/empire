@@ -74,7 +74,7 @@ const { data, pending, error, refresh } = await useFetch('/api/profile')
           </BasePlaceholderPage>
         </div>
         <div v-else class="mx-auto max-w-lg space-y-12 py-8">
-          <TairoFormGroup
+          <FormGroup
             label="Previous Experiences"
             sublabel="This will help others assess your experience"
           >
@@ -168,10 +168,10 @@ const { data, pending, error, refresh } = await useFetch('/api/profile')
                 </BaseButtonIcon>
               </div>
             </div>
-          </TairoFormGroup>
+          </FormGroup>
         </div>
       </div>
     </BaseCard>
-    <TairoFormSave />
+    <FormSave />
   </form>
 </template>

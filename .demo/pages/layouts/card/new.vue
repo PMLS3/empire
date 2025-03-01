@@ -276,7 +276,7 @@ const onSubmit = handleSubmit(
                           :class="[errors.account ? '!border-danger-500' : '']"
                         >
                           <span class="flex w-full items-center gap-3 text-start">
-                            <TairoLogo v-if="values?.account" class="text-primary-500 size-8" />
+                            <Logo v-if="values?.account" class="text-primary-500 size-8" />
                             <Icon
                               v-else
                               name="lucide:wallet"
@@ -315,7 +315,7 @@ const onSubmit = handleSubmit(
                         @click="setFieldValue('account', account)"
                       >
                         <template #start>
-                          <TairoLogo
+                          <Logo
                             class="text-muted-300 dark:text-muted-700 group-hover:text-primary-500 size-8"
                           />
                         </template>
@@ -565,7 +565,7 @@ const onSubmit = handleSubmit(
         <div v-else>
           <div class="mx-auto w-full max-w-md py-6 text-center">
             <div class="text-primary-500 mx-auto mb-4 size-14">
-              <TairoCheckAnimated color="primary" size="lg" />
+              <CheckAnimated color="primary" size="lg" />
             </div>
             <BaseHeading
               as="h2"

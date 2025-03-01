@@ -341,7 +341,7 @@ const onSubmit = handleSubmit(
             before submitting
           </BaseMessage>
 
-          <TairoFormGroup
+          <FormGroup
             label="Profile picture"
             sublabel="This is how others will recognize you"
           >
@@ -408,9 +408,9 @@ const onSubmit = handleSubmit(
                 {{ fileError }}
               </div>
             </div>
-          </TairoFormGroup>
+          </FormGroup>
 
-          <TairoFormGroup
+          <FormGroup
             label="Profile Info"
             sublabel="Others diserve to know you more"
           >
@@ -500,9 +500,9 @@ const onSubmit = handleSubmit(
                 </Field>
               </div>
             </div>
-          </TairoFormGroup>
+          </FormGroup>
 
-          <TairoFormGroup
+          <FormGroup
             label="Professional Info"
             sublabel="This can help you to win some opportunities"
           >
@@ -579,9 +579,9 @@ const onSubmit = handleSubmit(
                 </Field>
               </div>
             </div>
-          </TairoFormGroup>
+          </FormGroup>
 
-          <TairoFormGroup
+          <FormGroup
             label="Social Profiles"
             sublabel="This can help others finding you on social media"
           >
@@ -689,11 +689,11 @@ const onSubmit = handleSubmit(
                 </Field>
               </div>
             </div>
-          </TairoFormGroup>
+          </FormGroup>
         </div>
       </div>
     </BaseCard>
-    <TairoFormSave
+    <FormSave
       :disabled="isSubmitting"
       :loading="isSubmitting"
       @reset="resetForm"

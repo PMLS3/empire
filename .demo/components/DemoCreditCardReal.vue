@@ -80,7 +80,7 @@ const props = withDefaults(
 
     <!--Logo-->
     <div class="absolute bottom-7 end-5 flex">
-      <TairoLogo class="text-primary-500 size-10" />
+      <Logo class="text-primary-500 size-10" />
     </div>
   </div>
 </template>

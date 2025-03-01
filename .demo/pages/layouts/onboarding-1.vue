@@ -133,7 +133,7 @@ const validatePin = computed(() => {
         to="/"
         class="text-muted-400 hover:text-primary-500 dark:text-muted-700 dark:hover:text-primary-500 transition-colors duration-300"
       >
-        <TairoLogo class="size-10" />
+        <Logo class="size-10" />
       </NuxtLink>
       <div class="flex items-center gap-4">
         <BaseThemeToggle />
@@ -436,7 +436,7 @@ const validatePin = computed(() => {
               class="pointer-events-none flex w-full items-center justify-center pt-8"
             >
               <div class="flex h-16 items-center justify-center">
-                <TairoCheckAnimated v-if="validatePin" size="sm" />
+                <CheckAnimated v-if="validatePin" size="sm" />
                 <BaseIconBox
                   v-else
                   color="primary"

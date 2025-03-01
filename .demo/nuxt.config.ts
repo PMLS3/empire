@@ -30,11 +30,11 @@ export default defineNuxtConfig({
      * This would allows you to create an empty git repository
      * with only your source code and no demo.
      */
-    '../layers/tairo-layout-sidebar',
-    '../layers/tairo-layout-collapse',
-    '../layers/tairo-layout-topnav',
-    '../layers/tairo-layout-iconnav',
-    '../layers/tairo',
+    '../layers/layout-sidebar',
+    '../layers/layout-collapse',
+    '../layers/layout-topnav',
+    '../layers/layout-iconnav',
+    '../layers/shared',
   ],
 
   modules: [

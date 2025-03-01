@@ -78,7 +78,7 @@ definePageMeta({
               </BaseHeading>
 
               <div class="ms-auto mt-auto">
-                <TairoLogo class="text-muted-400 size-12" />
+                <Logo class="text-muted-400 size-12" />
               </div>
             </div>
           </div>

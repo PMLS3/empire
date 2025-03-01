@@ -615,7 +615,7 @@ function useStockPrice() {
               class="p-6 md:p-8"
             >
               <div class="mb-6 flex items-center gap-2">
-                <TairoLogo class="text-primary-500 size-9" />
+                <Logo class="text-primary-500 size-9" />
                 <div>
                   <BaseHeading
                     as="h3"

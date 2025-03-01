@@ -1,6 +1,6 @@
 {
   "private": true,
-  "name": "tairo",
+  "name": "empire",
   "version": "1.5.0",
   "type": "module",
   "main": "./nuxt.config.ts",

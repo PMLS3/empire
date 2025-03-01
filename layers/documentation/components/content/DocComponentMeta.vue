@@ -29,7 +29,7 @@ function wrapExternalLinks(string: string) {
         weight="medium"
         class="text-muted-800 dark:text-white"
       >
-        <TairoTocAnchor :label="`<${docs.meta?.pascalName}>`" />
+        <TocAnchor :label="`<${docs.meta?.pascalName}>`" />
       </BaseHeading>
     </div>
     <div
@@ -43,7 +43,7 @@ function wrapExternalLinks(string: string) {
             weight="semibold"
             class="text-muted-800 dark:text-muted-200"
           >
-            <TairoTocAnchor
+            <TocAnchor
               :id="`${docs?.meta?.kebabName}-usage`"
               :level="3"
               prefix="•"
@@ -92,7 +92,7 @@ function wrapExternalLinks(string: string) {
             weight="semibold"
             class="text-muted-800 dark:text-muted-200"
           >
-            <TairoTocAnchor
+            <TocAnchor
               :id="`${docs?.meta?.kebabName}-model`"
               :level="3"
               prefix="•"
@@ -245,7 +245,7 @@ function wrapExternalLinks(string: string) {
             weight="semibold"
             class="text-muted-800 dark:text-muted-200"
           >
-            <TairoTocAnchor
+            <TocAnchor
               :id="`${docs?.meta?.kebabName}-properties`"
               :level="3"
               prefix="•"
@@ -387,7 +387,7 @@ function wrapExternalLinks(string: string) {
             weight="semibold"
             class="text-muted-800 dark:text-muted-200"
           >
-            <TairoTocAnchor
+            <TocAnchor
               :id="`${docs?.meta?.kebabName}-properties-app-config`"
               :level="3"
               prefix="•"
@@ -523,7 +523,7 @@ function wrapExternalLinks(string: string) {
             weight="semibold"
             class="text-muted-800 dark:text-muted-200"
           >
-            <TairoTocAnchor
+            <TocAnchor
               :id="`${docs?.meta?.kebabName}-events`"
               :level="3"
               prefix="•"
@@ -626,7 +626,7 @@ function wrapExternalLinks(string: string) {
             weight="semibold"
             class="text-muted-800 dark:text-muted-200"
           >
-            <TairoTocAnchor
+            <TocAnchor
               :id="`${docs?.meta?.kebabName}-slots`"
               :level="3"
               prefix="•"
@@ -726,7 +726,7 @@ function wrapExternalLinks(string: string) {
             weight="semibold"
             class="text-muted-800 dark:text-muted-200"
           >
-            <TairoTocAnchor
+            <TocAnchor
               :id="`${docs?.meta?.kebabName}-exposed`"
               :level="3"
               prefix="•"

@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-wrap items-end justify-end gap-6">
-    <TairoPopover placement="bottom-end">
+    <Popover placement="bottom-end">
       <div class="flex items-center">
         <span
           class="border-muted-300 text-muted-800 dark:border-muted-600 rounded-full border px-3 py-1.5 font-sans text-sm font-medium dark:text-white"
@@ -10,7 +10,7 @@
       </div>
 
       <template #content>
-        <TairoPopoverContentMedia
+        <PopoverContentMedia
           :images="[
             'https://img.freepik.com/vector-gratis/mobiliario-sofa-ventana-mesa-plantas-interior-sala-estar_357257-356.jpg?w=300',
             'https://img.freepik.com/free-vector/home-interior-background-concept_52683-44165.jpg?w=150',
@@ -25,6 +25,6 @@
           to="#"
         />
       </template>
-    </TairoPopover>
+    </Popover>
   </div>
 </template>

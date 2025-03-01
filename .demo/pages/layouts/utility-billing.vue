@@ -151,7 +151,7 @@ const billingCycles = ref('monthly')
             >
               <Icon name="lucide:check" class="size-3 text-current" />
             </div>
-            <TairoLogo class="mx-auto mb-2 size-9" />
+            <Logo class="mx-auto mb-2 size-9" />
             <BaseHeading
               as="h4"
               size="sm"
@@ -183,7 +183,7 @@ const billingCycles = ref('monthly')
             >
               <Icon name="lucide:check" class="size-3 text-current" />
             </div>
-            <TairoLogo class="mx-auto mb-2 size-9" />
+            <Logo class="mx-auto mb-2 size-9" />
             <BaseHeading
               as="h4"
               size="sm"
@@ -215,7 +215,7 @@ const billingCycles = ref('monthly')
             >
               <Icon name="lucide:check" class="size-3 text-current" />
             </div>
-            <TairoLogo class="mx-auto mb-2 size-9" />
+            <Logo class="mx-auto mb-2 size-9" />
             <BaseHeading
               as="h4"
               size="sm"
@@ -247,7 +247,7 @@ const billingCycles = ref('monthly')
             >
               <Icon name="lucide:check" class="size-3 text-current" />
             </div>
-            <TairoLogo class="mx-auto mb-2 size-9" />
+            <Logo class="mx-auto mb-2 size-9" />
             <BaseHeading
               as="h4"
               size="sm"
@@ -269,7 +269,7 @@ const billingCycles = ref('monthly')
       <div>
         <BaseCard rounded="sm" class="flex h-full flex-col p-8">
           <div class="flex gap-12">
-            <TairoLogo class="size-12 shrink-0" :class="planColor" />
+            <Logo class="size-12 shrink-0" :class="planColor" />
             <div>
               <BaseText
                 size="md"
@@ -632,7 +632,7 @@ const billingCycles = ref('monthly')
         </BaseCard>
       </div>
     </div>
-    <TairoFormSave>
+    <FormSave>
       <BaseButton
         type="submit"
         color="primary"
@@ -642,6 +642,6 @@ const billingCycles = ref('monthly')
         <span class="font-semibold">${{ selectedPlan?.price.monthly }}</span>
         <span>/month</span>
       </BaseButton>
-    </TairoFormSave>
+    </FormSave>
   </form>
 </template>

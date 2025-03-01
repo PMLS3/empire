@@ -285,7 +285,7 @@ const onSubmit = handleSubmit(
             before submitting
           </BaseMessage>
 
-          <TairoFormGroup
+          <FormGroup
             label="Change Password"
             sublabel="For an improved account security"
           >
@@ -344,8 +344,8 @@ const onSubmit = handleSubmit(
                 </Field>
               </div>
             </div>
-          </TairoFormGroup>
-          <TairoFormGroup
+          </FormGroup>
+          <FormGroup
             label="2 Factor Auth"
             sublabel="Two factor authentication"
           >
@@ -386,8 +386,8 @@ const onSubmit = handleSubmit(
                 </Field>
               </div>
             </div>
-          </TairoFormGroup>
-          <TairoFormGroup
+          </FormGroup>
+          <FormGroup
             label="Notifications"
             sublabel="Configure how you receive notifications"
           >
@@ -457,11 +457,11 @@ const onSubmit = handleSubmit(
                 </Field>
               </div>
             </div>
-          </TairoFormGroup>
+          </FormGroup>
         </div>
       </div>
     </BaseCard>
-    <TairoFormSave
+    <FormSave
       :disabled="isSubmitting"
       :loading="isSubmitting"
       @reset="resetForm"

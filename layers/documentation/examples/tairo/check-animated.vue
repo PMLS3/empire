@@ -1,12 +1,12 @@
 <template>
   <div class="flex items-end gap-3">
-    <TairoCheckAnimated color="success" size="xs" />
+    <CheckAnimated color="success" size="xs" />
 
-    <TairoCheckAnimated color="success" size="sm" />
+    <CheckAnimated color="success" size="sm" />
 
-    <TairoCheckAnimated color="success" size="md" />
+    <CheckAnimated color="success" size="md" />
 
-    <TairoCheckAnimated color="success" size="lg" />
+    <CheckAnimated color="success" size="lg" />
   </div>
 </template>
 

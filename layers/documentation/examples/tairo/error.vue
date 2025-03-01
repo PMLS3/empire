@@ -1,5 +1,5 @@
 <template>
   <div>
-    <TairoError error="An error has occured" />
+    <Error error="An error has occured" />
   </div>
 </template>

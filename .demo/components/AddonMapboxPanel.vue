@@ -376,7 +376,7 @@ watch(
               class="ltablet:w-full flex size-16 shrink-0 items-center justify-center lg:w-full"
             >
               <NuxtLink to="#" class="flex items-center justify-center">
-                <TairoLogo class="text-primary-600 h-10" />
+                <Logo class="text-primary-600 h-10" />
               </NuxtLink>
             </div>
             <div
@@ -457,7 +457,7 @@ watch(
             <span class="text-muted-800 dark:text-white">Locations</span>
           </BaseHeading>
 
-          <TairoSidebarTools />
+          <SidebarTools />
         </div>
         <div
           class="ltablet:h-[calc(100dvh_-_64px)] nui-slimscroll h-[calc(100vh_-_492px)] overflow-y-auto p-6 lg:h-[calc(100dvh_-_64px)]"

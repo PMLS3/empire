@@ -588,7 +588,7 @@ async function submitMessage() {
               class="ltablet:w-full flex size-16 shrink-0 items-center justify-center lg:w-full"
             >
               <NuxtLink to="#" class="flex items-center justify-center">
-                <TairoLogo class="text-primary-600 h-10" />
+                <Logo class="text-primary-600 h-10" />
               </NuxtLink>
             </div>
             <div
@@ -684,7 +684,7 @@ async function submitMessage() {
               />
             </div>
 
-            <TairoSidebarTools
+            <SidebarTools
               class="relative -end-4 z-20 flex h-16 w-full scale-90 items-center justify-end gap-2 sm:end-0 sm:scale-100"
             />
           </div>

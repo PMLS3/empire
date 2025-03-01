@@ -110,7 +110,7 @@ const metaKey = useMetaKey()
 
 <template>
   <div>
-    <TairoModal
+    <Modal
       :classes="{
         wrapper: '!items-start pt-20',
         dialog: 'p-3 rounded-xl',
@@ -217,9 +217,9 @@ const metaKey = useMetaKey()
           >
             Search by
           </BaseText>
-          <TairoLogoText class="text-muted-400 mx-auto w-20" />
+          <LogoText class="text-muted-400 mx-auto w-20" />
         </div>
       </div>
-    </TairoModal>
+    </Modal>
   </div>
 </template>

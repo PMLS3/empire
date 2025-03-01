@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-wrap items-end justify-end gap-6">
-    <TairoPopover placement="bottom-end">
+    <Popover placement="bottom-end">
       <div class="flex items-center">
         <BaseAvatar src="/img/avatars/2.svg" />
 
@@ -10,7 +10,7 @@
       </div>
 
       <template #content>
-        <TairoPopoverContentDual
+        <PopoverContentDual
           :stats="[
             {
               title: 'Angular',
@@ -32,6 +32,6 @@
           link="/"
         />
       </template>
-    </TairoPopover>
+    </Popover>
   </div>
 </template>

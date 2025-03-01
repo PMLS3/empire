@@ -339,7 +339,7 @@ const currentRatingText = computed(() => {
           </div>
 
           <div class="ltablet:col-span-9 col-span-12 space-y-10 lg:col-span-9">
-            <TairoFormGroup
+            <FormGroup
               label="General info"
               sublabel="Some general information"
             >
@@ -565,9 +565,9 @@ const currentRatingText = computed(() => {
                   </Field>
                 </div>
               </div>
-            </TairoFormGroup>
+            </FormGroup>
 
-            <TairoFormGroup
+            <FormGroup
               label="Personal info"
               sublabel="Some personal information"
             >
@@ -668,7 +668,7 @@ const currentRatingText = computed(() => {
                   </div>
                 </div>
               </div>
-            </TairoFormGroup>
+            </FormGroup>
 
             <div class="text-right md:col-span-5">
               <div

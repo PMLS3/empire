@@ -1,4 +1,4 @@
-# Tairo Nuxt - Multipurpose Admin and Webapp Tailwind Template
+# Empire Nuxt - Multipurpose Admin and Webapp Tailwind Template
 
 [![cssninja-discord](https://img.shields.io/discord/785473098069311510?label=join%20us%20on%20discord&color=6944EC)](https://go.cssninja.io/discord)
 
@@ -54,11 +54,11 @@ pnpm dev
 
 This will run the `dev` script from the `package.json` file.
 
-> Access the Tairo frontend in your browser at [http://localhost:3000/](http://localhost:3000/)
+> Access the Empire frontend in your browser at [http://localhost:3000/](http://localhost:3000/)
 
 ## 💡 What to do next ?
 
-Our online documentation is a great place to learn how to use Tairo.
+Our online documentation is a great place to learn how to use Empire.
 We try to keep it mostly up to date, so you can always find the latest information.
 
 - [Access Online Documentation](https://tairo.cssninja.io/documentation)

@@ -57,7 +57,7 @@ function statusColor(itemStatus: string) {
 
 <template>
   <div>
-    <TairoContentWrapper>
+    <ContentWrapper>
       <template #left>
         <BaseInput
           v-model="filter"
@@ -197,6 +197,6 @@ function statusColor(itemStatus: string) {
           />
         </div>
       </div>
-    </TairoContentWrapper>
+    </ContentWrapper>
   </div>
 </template>

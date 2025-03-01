@@ -8,6 +8,6 @@ const { y } = useNinjaWindowScroll()
 
     <slot />
 
-    <TairoPanels />
+    <Panels />
   </div>
 </template>

@@ -18,7 +18,7 @@ const fakeItems = ref([])
 
 <template>
   <div>
-    <TairoContentWrapper>
+    <ContentWrapper>
       <template #left>
         <BaseInput
           v-model="fake"
@@ -56,9 +56,9 @@ const fakeItems = ref([])
       </template>
       <div>
         <div class="w-full">
-          <TairoTable rounded="sm">
+          <Table rounded="sm">
             <template #header>
-              <TairoTableHeading
+              <TableHeading
                 uppercase
                 spaced
                 class="p-4"
@@ -70,29 +70,29 @@ const fakeItems = ref([])
                     color="primary"
                   />
                 </div>
-              </TairoTableHeading>
-              <TairoTableHeading uppercase spaced>
+              </TableHeading>
+              <TableHeading uppercase spaced>
                 Type
-              </TairoTableHeading>
-              <TairoTableHeading uppercase spaced>
+              </TableHeading>
+              <TableHeading uppercase spaced>
                 Name
-              </TairoTableHeading>
-              <TairoTableHeading uppercase spaced>
+              </TableHeading>
+              <TableHeading uppercase spaced>
                 Size
-              </TairoTableHeading>
-              <TairoTableHeading uppercase spaced>
+              </TableHeading>
+              <TableHeading uppercase spaced>
                 Version
-              </TairoTableHeading>
-              <TairoTableHeading uppercase spaced>
+              </TableHeading>
+              <TableHeading uppercase spaced>
                 Last Updated
-              </TairoTableHeading>
-              <TairoTableHeading uppercase spaced>
+              </TableHeading>
+              <TableHeading uppercase spaced>
                 Action
-              </TairoTableHeading>
+              </TableHeading>
             </template>
 
-            <TairoTableRow v-for="index in 10" :key="index">
-              <TairoTableCell spaced>
+            <TableRow v-for="index in 10" :key="index">
+              <TableCell spaced>
                 <div class="flex items-center">
                   <BaseCheckbox
                     v-model="fakeItems"
@@ -101,20 +101,20 @@ const fakeItems = ref([])
                     color="primary"
                   />
                 </div>
-              </TairoTableCell>
-              <TairoTableCell light spaced>
+              </TableCell>
+              <TableCell light spaced>
                 <BasePlaceload class="size-[46px] shrink-0 rounded-xl" />
-              </TairoTableCell>
-              <TairoTableCell spaced>
+              </TableCell>
+              <TableCell spaced>
                 <BasePlaceload class="h-3 w-24 rounded-lg" />
-              </TairoTableCell>
-              <TairoTableCell light spaced>
+              </TableCell>
+              <TableCell light spaced>
                 <BasePlaceload class="h-3 w-12 rounded-lg" />
-              </TairoTableCell>
-              <TairoTableCell light spaced>
+              </TableCell>
+              <TableCell light spaced>
                 <BasePlaceload class="h-3 w-12 rounded-lg" />
-              </TairoTableCell>
-              <TairoTableCell spaced>
+              </TableCell>
+              <TableCell spaced>
                 <div class="flex items-center gap-2">
                   <BasePlaceload class="size-8 shrink-0 rounded-full" />
                   <div class="space-y-1">
@@ -122,14 +122,14 @@ const fakeItems = ref([])
                     <BasePlaceload class="h-2 w-[50px] rounded-lg" />
                   </div>
                 </div>
-              </TairoTableCell>
-              <TairoTableCell spaced>
+              </TableCell>
+              <TableCell spaced>
                 <BasePlaceload class="h-8 w-16 rounded-lg" />
-              </TairoTableCell>
-            </TairoTableRow>
-          </TairoTable>
+              </TableCell>
+            </TableRow>
+          </Table>
         </div>
       </div>
-    </TairoContentWrapper>
+    </ContentWrapper>
   </div>
 </template>

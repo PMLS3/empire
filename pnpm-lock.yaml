@@ -237,6 +237,25 @@ importers:
         specifier: 3.15.4
         version: 3.15.4(@parcel/watcher@2.5.1)(@types/node@22.13.8)(better-sqlite3@11.8.1)(db0@0.2.4(better-sqlite3@11.8.1))(eslint@9.21.0(jiti@2.4.2))(ioredis@5.5.0)(magicast@0.3.5)(meow@9.0.0)(optionator@0.9.4)(rollup@4.34.9)(terser@5.39.0)(typescript@5.8.2)(vite@6.2.0(@types/node@22.13.8)(jiti@2.4.2)(terser@5.39.0)(yaml@2.7.0))(vue-tsc@2.2.4(typescript@5.8.2))(yaml@2.7.0)
 
+  layers/crm:
+    dependencies:
+      firebase:
+        specifier: ^11.4.0
+        version: 11.4.0
+      firebase-admin:
+        specifier: ^13.1.0
+        version: 13.1.0
+    devDependencies:
+      '@fontsource-variable/inter':
+        specifier: ^5.1.1
+        version: 5.1.1
+      '@fontsource-variable/karla':
+        specifier: ^5.1.1
+        version: 5.1.1
+      nuxt:
+        specifier: 3.15.4
+        version: 3.15.4(@parcel/watcher@2.5.1)(@types/node@22.13.8)(better-sqlite3@11.8.1)(db0@0.2.4(better-sqlite3@11.8.1))(eslint@9.21.0(jiti@2.4.2))(ioredis@5.5.0)(magicast@0.3.5)(meow@9.0.0)(optionator@0.9.4)(rollup@4.34.9)(terser@5.39.0)(typescript@5.8.2)(vite@6.2.0(@types/node@22.13.8)(jiti@2.4.2)(terser@5.39.0)(yaml@2.7.0))(vue-tsc@2.2.4(typescript@5.8.2))(yaml@2.7.0)
+
   layers/documentation:
     devDependencies:
       '@nuxt/content':
@@ -273,7 +292,46 @@ importers:
         specifier: 0.33.5
         version: 0.33.5
 
-  layers/tairo:
+  layers/layout-collapse:
+    dependencies:
+      nuxt:
+        specifier: ^3.15.4
+        version: 3.15.4(@parcel/watcher@2.5.1)(@types/node@22.13.8)(better-sqlite3@11.8.1)(db0@0.2.4(better-sqlite3@11.8.1))(eslint@9.21.0(jiti@2.4.2))(ioredis@5.5.0)(magicast@0.3.5)(meow@9.0.0)(optionator@0.9.4)(rollup@4.34.9)(terser@5.39.0)(typescript@5.8.2)(vite@6.2.0(@types/node@22.13.8)(jiti@2.4.2)(terser@5.39.0)(yaml@2.7.0))(vue-tsc@2.2.4(typescript@5.8.2))(yaml@2.7.0)
+    devDependencies:
+      '@nuxt/schema':
+        specifier: ^3.15.4
+        version: 3.15.4
+      vue-router:
+        specifier: ^4.5.0
+        version: 4.5.0(vue@3.5.13(typescript@5.8.2))
+
+  layers/layout-iconnav:
+    dependencies:
+      nuxt:
+        specifier: ^3.15.4
+        version: 3.15.4(@parcel/watcher@2.5.1)(@types/node@22.13.8)(better-sqlite3@11.8.1)(db0@0.2.4(better-sqlite3@11.8.1))(eslint@9.21.0(jiti@2.4.2))(ioredis@5.5.0)(magicast@0.3.5)(meow@9.0.0)(optionator@0.9.4)(rollup@4.34.9)(terser@5.39.0)(typescript@5.8.2)(vite@6.2.0(@types/node@22.13.8)(jiti@2.4.2)(terser@5.39.0)(yaml@2.7.0))(vue-tsc@2.2.4(typescript@5.8.2))(yaml@2.7.0)
+    devDependencies:
+      vue-router:
+        specifier: ^4.5.0
+        version: 4.5.0(vue@3.5.13(typescript@5.8.2))
+
+  layers/layout-sidebar:
+    dependencies:
+      nuxt:
+        specifier: ^3.15.4
+        version: 3.15.4(@parcel/watcher@2.5.1)(@types/node@22.13.8)(better-sqlite3@11.8.1)(db0@0.2.4(better-sqlite3@11.8.1))(eslint@9.21.0(jiti@2.4.2))(ioredis@5.5.0)(magicast@0.3.5)(meow@9.0.0)(optionator@0.9.4)(rollup@4.34.9)(terser@5.39.0)(typescript@5.8.2)(vite@6.2.0(@types/node@22.13.8)(jiti@2.4.2)(terser@5.39.0)(yaml@2.7.0))(vue-tsc@2.2.4(typescript@5.8.2))(yaml@2.7.0)
+
+  layers/layout-topnav:
+    dependencies:
+      nuxt:
+        specifier: ^3.15.4
+        version: 3.15.4(@parcel/watcher@2.5.1)(@types/node@22.13.8)(better-sqlite3@11.8.1)(db0@0.2.4(better-sqlite3@11.8.1))(eslint@9.21.0(jiti@2.4.2))(ioredis@5.5.0)(magicast@0.3.5)(meow@9.0.0)(optionator@0.9.4)(rollup@4.34.9)(terser@5.39.0)(typescript@5.8.2)(vite@6.2.0(@types/node@22.13.8)(jiti@2.4.2)(terser@5.39.0)(yaml@2.7.0))(vue-tsc@2.2.4(typescript@5.8.2))(yaml@2.7.0)
+    devDependencies:
+      vue-router:
+        specifier: ^4.5.0
+        version: 4.5.0(vue@3.5.13(typescript@5.8.2))
+
+  layers/shared:
     dependencies:
       '@cssninja/nuxt-toaster':
         specifier: ^0.3.12
@@ -303,45 +361,6 @@ importers:
       vue:
         specifier: ^3.5.13
         version: 3.5.13(typescript@5.8.2)
-      vue-router:
-        specifier: ^4.5.0
-        version: 4.5.0(vue@3.5.13(typescript@5.8.2))
-
-  layers/tairo-layout-collapse:
-    dependencies:
-      nuxt:
-        specifier: ^3.15.4
-        version: 3.15.4(@parcel/watcher@2.5.1)(@types/node@22.13.8)(better-sqlite3@11.8.1)(db0@0.2.4(better-sqlite3@11.8.1))(eslint@9.21.0(jiti@2.4.2))(ioredis@5.5.0)(magicast@0.3.5)(meow@9.0.0)(optionator@0.9.4)(rollup@4.34.9)(terser@5.39.0)(typescript@5.8.2)(vite@6.2.0(@types/node@22.13.8)(jiti@2.4.2)(terser@5.39.0)(yaml@2.7.0))(vue-tsc@2.2.4(typescript@5.8.2))(yaml@2.7.0)
-    devDependencies:
-      '@nuxt/schema':
-        specifier: ^3.15.4
-        version: 3.15.4
-      vue-router:
-        specifier: ^4.5.0
-        version: 4.5.0(vue@3.5.13(typescript@5.8.2))
-
-  layers/tairo-layout-iconnav:
-    dependencies:
-      nuxt:
-        specifier: ^3.15.4
-        version: 3.15.4(@parcel/watcher@2.5.1)(@types/node@22.13.8)(better-sqlite3@11.8.1)(db0@0.2.4(better-sqlite3@11.8.1))(eslint@9.21.0(jiti@2.4.2))(ioredis@5.5.0)(magicast@0.3.5)(meow@9.0.0)(optionator@0.9.4)(rollup@4.34.9)(terser@5.39.0)(typescript@5.8.2)(vite@6.2.0(@types/node@22.13.8)(jiti@2.4.2)(terser@5.39.0)(yaml@2.7.0))(vue-tsc@2.2.4(typescript@5.8.2))(yaml@2.7.0)
-    devDependencies:
-      vue-router:
-        specifier: ^4.5.0
-        version: 4.5.0(vue@3.5.13(typescript@5.8.2))
-
-  layers/tairo-layout-sidebar:
-    dependencies:
-      nuxt:
-        specifier: ^3.15.4
-        version: 3.15.4(@parcel/watcher@2.5.1)(@types/node@22.13.8)(better-sqlite3@11.8.1)(db0@0.2.4(better-sqlite3@11.8.1))(eslint@9.21.0(jiti@2.4.2))(ioredis@5.5.0)(magicast@0.3.5)(meow@9.0.0)(optionator@0.9.4)(rollup@4.34.9)(terser@5.39.0)(typescript@5.8.2)(vite@6.2.0(@types/node@22.13.8)(jiti@2.4.2)(terser@5.39.0)(yaml@2.7.0))(vue-tsc@2.2.4(typescript@5.8.2))(yaml@2.7.0)
-
-  layers/tairo-layout-topnav:
-    dependencies:
-      nuxt:
-        specifier: ^3.15.4
-        version: 3.15.4(@parcel/watcher@2.5.1)(@types/node@22.13.8)(better-sqlite3@11.8.1)(db0@0.2.4(better-sqlite3@11.8.1))(eslint@9.21.0(jiti@2.4.2))(ioredis@5.5.0)(magicast@0.3.5)(meow@9.0.0)(optionator@0.9.4)(rollup@4.34.9)(terser@5.39.0)(typescript@5.8.2)(vite@6.2.0(@types/node@22.13.8)(jiti@2.4.2)(terser@5.39.0)(yaml@2.7.0))(vue-tsc@2.2.4(typescript@5.8.2))(yaml@2.7.0)
-    devDependencies:
       vue-router:
         specifier: ^4.5.0
         version: 4.5.0(vue@3.5.13(typescript@5.8.2))

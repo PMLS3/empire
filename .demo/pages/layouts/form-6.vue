@@ -954,6 +954,6 @@ const colorCode = ref('color_code_1')
         </div>
       </div>
     </BaseCard>
-    <TairoFormSave />
+    <FormSave />
   </form>
 </template>
