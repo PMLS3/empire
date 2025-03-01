@@ -2,8 +2,7 @@
   import { toTypedSchema } from "@vee-validate/zod"
   import { Field, useForm } from "vee-validate"
   import { z } from "zod"
-  import { useToaster } from "~/composables/toaster"
-  import { useAuth } from "~/composables/auth"
+  import { useToaster } from "../../../shared/composables/toaster"
 
   definePageMeta({
     layout: "empty",

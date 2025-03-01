@@ -1,5 +1,5 @@
 import { defineEventHandler } from 'h3'
-import { setUserSession } from '~/server/utils/session'
+import { setUserSession } from '../../utils/session'
 
 export default defineEventHandler(async (event) => {
   try {

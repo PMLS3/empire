@@ -1,0 +1,34 @@
+FROM bitnami/node:18 AS build
+WORKDIR /app
+
+# install pnpm via corepack
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+COPY . ./
+
+RUN npm install --global cross-env
+# RUN echo "//npm.pkg.github.com/:_authToken=$NPM_TOKEN" > .npmrc
+
+RUN pnpm install
+
+RUN filter=creator pnpm build
+
+
+FROM bitnami/node:18 AS prod
+WORKDIR /app
+
+# add non root user
+RUN groupadd -g 10101 nuxt && \
+    useradd -u 11001 -g nuxt nuxt \
+    && chown -R nuxt:nuxt /app
+
+USER nuxt:nuxt
+
+# copy only the .output directory
+COPY --chown=nuxt:nuxt --from=build /app/workspaces/creator/.output .output
+
+ENV PORT=8080
+
+EXPOSE 8080
+
+CMD [ "node", ".output/server/index.mjs" ]

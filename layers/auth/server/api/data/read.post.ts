@@ -1,6 +1,6 @@
 import { defineEventHandler } from 'h3'
-import { getUserSession, type UserSession } from '~/server/utils/session'
-import { useFirebaseServer } from '~/server/firebase/init'
+import { getUserSession, type UserSession } from '../../utils/session'
+import { useFirebaseServer } from '../../firebase/init'
 import { collection, query as firestoreQuery, where, getDocs, doc, getDoc, serverTimestamp } from 'firebase/firestore'
 import { v4 as uuidv4 } from 'uuid'
 import { createError, readBody } from 'h3'

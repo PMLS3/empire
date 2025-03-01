@@ -11,28 +11,31 @@
 export default defineAppConfig({
   nuxtIcon: {},
   tairo: {
-    title: 'Tairo',
+    title: 'Creator',
+    routing: {
+      onAuth: '/dashboards', 
+    },
     sidebar: {
       toolbar: {
         showNavBurger: true,
         tools: [
           {
-            component: 'DemoThemeToggle',
+            component: 'ThemeToggle',
             props: {
               disableTransitions: true,
             },
           },
           {
-            component: 'DemoToolbarLanguage',
+            component: 'ToolbarLanguage',
           },
           {
-            component: 'DemoToolbarNotifications',
+            component: 'ToolbarNotifications',
           },
           {
-            component: 'DemoToolbarActivity',
+            component: 'ToolbarActivity',
           },
           {
-            component: 'DemoToolbarAccountMenu',
+            component: 'ToolbarAccountMenu',
           },
         ],
       },
@@ -40,7 +43,7 @@ export default defineAppConfig({
         enabled: true,
         tools: [
           {
-            component: 'DemoThemeToggle',
+            component: 'ThemeToggle',
             props: {
               class: 'ms-auto',
               disableTransitions: true,
@@ -48,33 +51,38 @@ export default defineAppConfig({
             },
           },
           {
-            component: 'DemoCircularMenuLanguage',
+            component: 'CircularMenuLanguage',
           },
           {
-            component: 'DemoCircularMenuNotifications',
+            component: 'CircularMenuNotifications',
           },
           {
-            component: 'DemoCircularMenuActivity',
+            component: 'CircularMenuActivity',
           },
         ],
       },
       navigation: {
         logo: {
-          component: 'TairoLogo',
+          component: 'Logo',
           props: { class: 'text-primary-600 h-10' },
         },
         items: [
           {
             title: 'Dashboards',
             icon: { name: 'ph:sidebar-duotone', class: 'w-5 h-5' },
-            subsidebar: { component: 'DemoSubsidebarDashboards' },
+            subsidebar: { component: 'SubsidebarDashboards' },
             activePath: '/dashboards',
           },
           {
             title: 'Layouts',
             icon: { name: 'ph:app-window-duotone', class: 'w-5 h-5' },
-            subsidebar: { component: 'DemoSubsidebarLayouts' },
+            subsidebar: { component: 'SubsidebarLayouts' },
             activePath: '/layouts',
+          },
+          {
+            title: 'File Manager',
+            icon: { name: 'ph:file-duotone', class: 'w-5 h-5' },
+            to: '/file-manager',
           },
           {
             title: 'Chat',
@@ -107,7 +115,7 @@ export default defineAppConfig({
           },
           {
             title: 'My Account',
-            component: 'DemoAccountMenu',
+            component: 'AccountMenu',
             position: 'end',
           },
         ],
@@ -120,19 +128,19 @@ export default defineAppConfig({
         showNavBurger: true,
         tools: [
           {
-            component: 'DemoThemeToggle',
+            component: 'ThemeToggle',
           },
           {
-            component: 'DemoToolbarLanguage',
+            component: 'ToolbarLanguage',
           },
           {
-            component: 'DemoToolbarNotifications',
+            component: 'ToolbarNotifications',
           },
           {
-            component: 'DemoToolbarActivity',
+            component: 'ToolbarActivity',
           },
           {
-            component: 'DemoToolbarAccountMenu',
+            component: 'ToolbarAccountMenu',
           },
         ],
       },
@@ -140,7 +148,7 @@ export default defineAppConfig({
         enabled: true,
         tools: [
           {
-            component: 'DemoThemeToggle',
+            component: 'ThemeToggle',
             props: {
               class: 'ms-auto',
               disableTransitions: true,
@@ -148,23 +156,23 @@ export default defineAppConfig({
             },
           },
           {
-            component: 'DemoCircularMenuLanguage',
+            component: 'CircularMenuLanguage',
           },
           {
-            component: 'DemoCircularMenuNotifications',
+            component: 'CircularMenuNotifications',
           },
           {
-            component: 'DemoCircularMenuActivity',
+            component: 'CircularMenuActivity',
           },
         ],
       },
       navigation: {
         enabled: true,
         header: {
-          component: 'DemoCollapseNavigationHeader',
+          component: 'CollapseNavigationHeader',
         },
         footer: {
-          component: 'DemoCollapseNavigationFooter',
+          component: 'CollapseNavigationFooter',
         },
         items: [
           {
@@ -341,11 +349,11 @@ export default defineAppConfig({
       navigation: {
         enabled: true,
         logo: {
-          component: 'TairoLogo',
+          component: 'Logo',
           props: { class: 'text-primary-600 h-10 w-10' },
         },
         header: {
-          component: 'DemoTopnavWorkspaceDropdown',
+          component: 'TopnavWorkspaceDropdown',
           props: {},
         },
         items: [
@@ -403,7 +411,7 @@ export default defineAppConfig({
         enabled: true,
         tools: [
           {
-            component: 'DemoThemeToggle',
+            component: 'ThemeToggle',
             props: {
               class: 'ms-auto',
               disableTransitions: true,
@@ -411,13 +419,13 @@ export default defineAppConfig({
             },
           },
           {
-            component: 'DemoCircularMenuLanguage',
+            component: 'CircularMenuLanguage',
           },
           {
-            component: 'DemoCircularMenuNotifications',
+            component: 'CircularMenuNotifications',
           },
           {
-            component: 'DemoCircularMenuActivity',
+            component: 'CircularMenuActivity',
           },
         ],
       },
@@ -426,22 +434,22 @@ export default defineAppConfig({
         showTitle: false,
         tools: [
           {
-            component: 'DemoThemeToggle',
+            component: 'ThemeToggle',
             props: {
               disableTransitions: true,
             },
           },
           {
-            component: 'DemoToolbarSearch',
+            component: 'ToolbarSearch',
           },
           {
-            component: 'DemoToolbarCustomize',
+            component: 'ToolbarCustomize',
           },
           {
-            component: 'DemoToolbarNotifications',
+            component: 'ToolbarNotifications',
           },
           {
-            component: 'DemoAccountMenu',
+            component: 'AccountMenu',
             props: {
               horizontal: true,
             },
@@ -451,11 +459,11 @@ export default defineAppConfig({
       footer: {
         enabled: true,
         logoSeparator: {
-          component: 'TairoLogo',
+          component: 'Logo',
           props: { class: 'text-primary-500 h-7 w-7' },
         },
         logo: {
-          component: 'TairoLogoText',
+          component: 'LogoText',
           props: {
             class:
               'text-muted-300 ltablet:mx-0 mx-auto h-4 transition-all duration-200 lg:mx-0',
@@ -494,7 +502,7 @@ export default defineAppConfig({
       navigation: {
         enabled: true,
         logo: {
-          component: 'TairoLogo',
+          component: 'Logo',
           props: { class: 'text-primary-600 h-10 w-10' },
         },
         items: [
@@ -623,7 +631,7 @@ export default defineAppConfig({
         enabled: true,
         tools: [
           {
-            component: 'DemoThemeToggle',
+            component: 'ThemeToggle',
             props: {
               class: 'ms-auto',
               disableTransitions: true,
@@ -631,13 +639,13 @@ export default defineAppConfig({
             },
           },
           {
-            component: 'DemoCircularMenuLanguage',
+            component: 'CircularMenuLanguage',
           },
           {
-            component: 'DemoCircularMenuNotifications',
+            component: 'CircularMenuNotifications',
           },
           {
-            component: 'DemoCircularMenuActivity',
+            component: 'CircularMenuActivity',
           },
         ],
       },
@@ -646,16 +654,16 @@ export default defineAppConfig({
         showTitle: true,
         tools: [
           {
-            component: 'DemoThemeToggle',
+            component: 'ThemeToggle',
           },
           // {
-          //   component: 'DemoToolbarDropdown',
+          //   component: 'ToolbarDropdown',
           // },
           {
-            component: 'DemoToolbarNotifications',
+            component: 'ToolbarNotifications',
           },
           {
-            component: 'DemoAccountMenu',
+            component: 'AccountMenu',
             props: {
               horizontal: true,
               orientation: 'start',
@@ -666,11 +674,11 @@ export default defineAppConfig({
       footer: {
         enabled: true,
         logoSeparator: {
-          component: 'TairoLogo',
+          component: 'Logo',
           props: { class: 'text-primary-500 h-7 w-7' },
         },
         logo: {
-          component: 'TairoLogoText',
+          component: 'LogoText',
           props: {
             class:
               'text-muted-300 ltablet:mx-0 mx-auto h-4 transition-all duration-200 lg:mx-0',
@@ -709,38 +717,38 @@ export default defineAppConfig({
       {
         name: 'language',
         position: 'right',
-        component: 'DemoPanelLanguage',
+        component: 'PanelLanguage',
       },
       {
         name: 'activity',
         position: 'right',
-        component: 'DemoPanelActivity',
+        component: 'PanelActivity',
       },
       {
         name: 'search',
         position: 'left',
-        component: 'DemoPanelSearch',
+        component: 'PanelSearch',
       },
       {
         name: 'task',
         position: 'right',
-        component: 'DemoPanelTask',
+        component: 'PanelTask',
       },
       {
         name: 'account',
         position: 'right',
-        component: 'DemoPanelAccount',
+        component: 'PanelAccount',
         size: 'md',
       },
       {
         name: 'card',
         position: 'right',
-        component: 'DemoPanelCard',
+        component: 'PanelCard',
       },
       {
         name: 'invest',
         position: 'right',
-        component: 'DemoPanelInvest',
+        component: 'PanelInvest',
         size: 'md',
       },
     ],

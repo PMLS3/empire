@@ -6,8 +6,10 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 console.log(__dirname)
 // const sourceDir = path.join(__dirname, './layers/documentation');
-const sourceDir = "/Users/peetstander/Projects/OnePersonEmpire/layers/o-server/server"
-const destinationDir = path.join(__dirname, "./shared/omni/server")
+const sourceDir = "/Users/peetstander/Projects/empire/.demo/components"
+const destinationDir = "/Users/peetstander/Projects/empire/layers/shared/components"
+
+// const destinationDir = path.join(__dirname, "./shared/omni/server")
 
 function copyRecursively(source, destination) {
   // Create destination directory if it doesn't exist

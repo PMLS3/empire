@@ -19,6 +19,8 @@ export const useFirebase =  () => {
   const test: any = process.env.NODE_ENV === "development"
   const firebaseConfig: any = config.public.firebaseConfig
 
+  console.log('firebaseConfig', firebaseConfig)
+
   const firebaseApp = initializeApp(firebaseConfig)
   const auth = getAuth(firebaseApp)
   const firestore = getFirestore(firebaseApp)

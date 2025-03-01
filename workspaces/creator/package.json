@@ -1,6 +1,6 @@
 {
   "private": true,
-  "name": "demo",
+  "name": "creator",
   "version": "0.1.0",
   "type": "module",
   "main": "./nuxt.config.ts",
@@ -15,7 +15,7 @@
   "devDependencies": {
     "@fontsource-variable/fira-code": "^5.1.1",
     "@fontsource-variable/inter": "^5.1.1",
-    "@fontsource-variable/karla": "^5.0.19",
+    "@fontsource-variable/karla": "^5.1.1",
     "@fontsource-variable/roboto-flex": "^5.1.1",
     "@headlessui/vue": "^1.7.23",
     "@mapbox/mapbox-gl-geocoder": "5.0.3",

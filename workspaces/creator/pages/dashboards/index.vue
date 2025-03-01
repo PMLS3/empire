@@ -11,6 +11,7 @@ definePageMeta({
   },
 })
 
+const { user } = useAuth()
 const areaCustomers = reactive(useAreaCustomers())
 const radialBarTeam = reactive(useRadialBarTeam())
 const barProfit = reactive(useBarProfit())
@@ -256,7 +257,8 @@ function useBarProfit() {
 </script>
 
 <template>
-  <div>
+  <div class="relative">
+   
     <!-- Header -->
     <div class="mb-8 flex flex-col justify-between md:flex-row md:items-center">
       <div
@@ -271,7 +273,7 @@ function useBarProfit() {
             lead="tight"
             class="text-muted-800 dark:text-white"
           >
-            <span>Welcome back, Maya</span>
+            <span>Welcome back, {{ user?.username }}</span>
           </BaseHeading>
           <BaseParagraph>
             <span class="text-muted-500">
