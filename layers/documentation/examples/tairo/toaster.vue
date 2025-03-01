@@ -349,7 +349,7 @@ const showToast = () => {
   toaster = createNinjaToaster({
     theme: themes[position.value],
   })
-  toaster.showComponent('TairoToaster', {
+  toaster.showComponent('Toaster', {
     props: {
       title: toast.title,
       message: toast.message,

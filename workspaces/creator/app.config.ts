@@ -32,6 +32,9 @@ export default defineAppConfig({
             component: 'ToolbarNotifications',
           },
           {
+            component: "ToolbarAgent",
+          },
+          {
             component: 'ToolbarActivity',
           },
           {
@@ -135,6 +138,9 @@ export default defineAppConfig({
           },
           {
             component: 'ToolbarNotifications',
+          },
+          {
+            component: "ToolbarAgent",
           },
           {
             component: 'ToolbarActivity',
@@ -446,6 +452,9 @@ export default defineAppConfig({
             component: 'ToolbarCustomize',
           },
           {
+            component: "ToolbarAgent",
+          },
+          {
             component: 'ToolbarNotifications',
           },
           {
@@ -656,9 +665,9 @@ export default defineAppConfig({
           {
             component: 'ThemeToggle',
           },
-          // {
-          //   component: 'ToolbarDropdown',
-          // },
+          {
+            component: "ToolbarAgent",
+          },
           {
             component: 'ToolbarNotifications',
           },
@@ -718,6 +727,11 @@ export default defineAppConfig({
         name: 'language',
         position: 'right',
         component: 'PanelLanguage',
+      },
+      {
+        name: "agent",
+        position: "right",
+        component: "PanelAgent",
       },
       {
         name: 'activity',
