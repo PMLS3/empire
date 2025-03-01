@@ -65,3 +65,26 @@ We try to keep it mostly up to date, so you can always find the latest informati
 - [Access Shuriken UI Documentation](https://shurikenui.com)
 
 > We also have a great [discord community](https://go.cssninja.io/discord) where you can ask questions and show your work.
+
+# Empire Project
+
+## Environment Setup
+
+This project requires setting up environment variables for API keys and configuration.
+Please see [Environment Setup](./ENV_SETUP.md) for detailed instructions.
+
+## Running Locally
+
+1. Ensure you've completed the environment setup
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+## Security
+
+All sensitive API keys are stored in environment variables. The `.env` file is listed in `.gitignore` and should never be committed to the repository.

@@ -5,5 +5,10 @@ node_modules
 nuxt.d.ts
 .output
 dist
+
+# Environment variables
 .env
+.env.*
+!.env.example
+
 *Zone.Identifier
