@@ -158,7 +158,26 @@ export const functionGroups: Record<string, FunctionGroup> = {
             },
             fields: {
               type: "object",
-              description: "The fields to update"
+              description: "The fields to update",
+              properties: {
+                name: {
+                  type: "string",
+                  description: "Customer name"
+                },
+                email: {
+                  type: "string",
+                  description: "Customer email"
+                },
+                status: {
+                  type: "string",
+                  description: "Customer status",
+                  enum: ["active", "inactive", "pending"]
+                },
+                notes: {
+                  type: "string",
+                  description: "Notes about the customer"
+                }
+              }
             }
           },
           required: ["customerId", "fields"]

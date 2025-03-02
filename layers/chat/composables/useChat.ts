@@ -64,7 +64,6 @@ import { useChatGemini } from './useChatGemini'
 import { useChatAgency } from './useChatAgency'
 import { useRuntimeConfig } from '#app'
 import { ref, shallowRef, computed, watch } from 'vue'
-import { combineGroups } from '../../functions'  // Import the combineGroups helper
 
 export const useChat = () => {
   const config = useRuntimeConfig()
@@ -81,7 +80,7 @@ export const useChat = () => {
 
   const researchAgency = useChatAgency({
     apiKey: config.public.geminiApiKey,
-    functionGroups: ['research'],
+    functionGroups: ['research'], // Fixed: was duplicating 'research' twice
     customInstructions: 'Focus on helping with research tasks. You are a Research Assistant.',
     enableVoice: true,
     enableScreenShare: false

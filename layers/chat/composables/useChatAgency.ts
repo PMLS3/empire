@@ -5,7 +5,7 @@ import { useChatGemini } from './useChatGemini'
 import { useVoiceRecorder } from './media/useVoiceRecorder'
 import { useAudioPlayer } from './media/useAudioPlayer'
 import { useVideo } from './media/useVideo'
-import { functionGroups } from '../../functions/groups'
+import { functionGroups, combineGroups } from '../../functions'
 
 export interface ChatAgencyOptions {
   // Connection options
@@ -50,40 +50,19 @@ export function useChatAgency(options: ChatAgencyOptions) {
   // Generate a unique ID for this agency instance
   const agencyId = `agency-${Math.random().toString(36).substring(2, 15)}`
   
-  // Collect function declarations, handlers and system instructions from selected groups
-  const selectedFunctionGroups = computed(() => {
-    const selected: {
-      declarations: any[],
-      handlers: { [key: string]: Function },
-      systemInstructions: string[]
-    } = {
-      declarations: [],
-      handlers: {},
-      systemInstructions: []
-    }
-    
-    options.functionGroups.forEach(groupName => {
-      if (functionGroups[groupName]) {
-        const group = functionGroups[groupName]
-        selected.declarations.push(...group.declarations)
-        selected.handlers = { ...selected.handlers, ...group.handlers }
-        selected.systemInstructions.push(group.systemInstruction())
-      } else {
-        console.warn(`Function group "${groupName}" not found`)
-      }
-    })
-    
-    return selected
-  })
+  // Use combineGroups instead of manually combining function groups
+  const combinedGroups = computed(() => {
+    return combineGroups(options.functionGroups);
+  });
   
   // Combined system instruction
   const systemInstruction = computed(() => {
-    let instruction = selectedFunctionGroups.value.systemInstructions.join('\n\n')
+    let instruction = combinedGroups.value.systemInstruction;
     if (options.customInstructions) {
-      instruction += '\n\n' + options.customInstructions
+      instruction += '\n\n' + options.customInstructions;
     }
-    return instruction
-  })
+    return instruction;
+  });
   
   // Initialize voice capabilities if enabled
   const voiceRecorder = options.enableVoice ? useVoiceRecorder() : null
@@ -168,10 +147,10 @@ export function useChatAgency(options: ChatAgencyOptions) {
             // Handle function calls from the server
             const { functionName, args } = message.functionCall || {}
             
-            if (selectedFunctionGroups.value.handlers[functionName]) {
+            if (combinedGroups.value.handlers[functionName]) {
               isLoading.value = true
               
-              selectedFunctionGroups.value.handlers[functionName](args)
+              combinedGroups.value.handlers[functionName](args)
                 .then(result => {
                   send(JSON.stringify({
                     type: 'function_result',
@@ -347,14 +326,14 @@ export function useChatAgency(options: ChatAgencyOptions) {
     
     console.log(`Creating Gemini-based agency with ${options.functionGroups.length} function groups`);
     console.log(`Selected function groups for ${agencyId}:`, options.functionGroups);
-    console.log(`Function declarations count: ${selectedFunctionGroups.value.declarations.length}`);
+    console.log(`Function declarations count: ${combinedGroups.value.declarations.length}`);
     
-    // Pass the agency ID and functions to ensure unique state with proper functions
+    // Pass the agency ID, functions and system instructions from combinedGroups
     const gemini = useChatGemini({
       apiKey: options.apiKey,
-      functions: selectedFunctionGroups.value.declarations,
+      functions: combinedGroups.value.declarations,
       systemInstruction: systemInstruction.value,
-      stateKey: agencyId // Add this parameter to make state specific to this agency
+      stateKey: agencyId
     });
     
     // IMPORTANT: Don't directly link to gemini.messages - create our own messages store
@@ -372,8 +351,8 @@ export function useChatAgency(options: ChatAgencyOptions) {
         
         // Log the function declarations to help with debugging
         console.log(`Function declarations for ${agencyId}:`, {
-          count: selectedFunctionGroups.value.declarations.length,
-          names: selectedFunctionGroups.value.declarations.map(f => f.name)
+          count: combinedGroups.value.declarations.length,
+          names: combinedGroups.value.declarations.map(f => f.name)
         });
         
         // Add a short delay to ensure logging appears before potential errors
@@ -550,11 +529,11 @@ export function useChatAgency(options: ChatAgencyOptions) {
       if (newMessage?.functionCall) {
         const { name, arguments: args } = newMessage.functionCall
         
-        if (selectedFunctionGroups.value.handlers[name]) {
+        if (combinedGroups.value.handlers[name]) {
           isLoading.value = true
           
           // Execute the function handler
-          selectedFunctionGroups.value.handlers[name](args)
+          combinedGroups.value.handlers[name](args)
             .then(result => {
               // Return the result back to Gemini
               return gemini.sendMessage(JSON.stringify({ result }))

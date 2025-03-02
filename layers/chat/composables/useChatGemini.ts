@@ -11,7 +11,7 @@ import type {
 import { useVoiceRecorder } from '../composables/media/useVoiceRecorder'
 import { useAudioPlayer } from './media/useAudioPlayer'
 import { functionHandlers } from './functions'
-import { systemInstructionRouting, functionDeclarationsRouting } from './functions/routing'
+// import { systemInstructionRouting, functionDeclarationsRouting } from './functions/routing'
 // import { systemInstructionBook, functionDeclarationsBook } from './functions/publising'
 // Separate interfaces for text and voice states
 interface TextState {
@@ -86,12 +86,16 @@ export const useChatGemini = (apiKeyOrConfig: string | {
     error: '',
   }))
 
+  console.log('CUSTOM FUNCTIONS:', customFunctions)
+  console.log('CUSTOM SYSTEM INSTRUCTION:', customSystemInstruction)
+  console.log('STATE KEY:', stateKey)
+
   // Base configuration for text
   const textConfig: LiveConfig = {
     model: 'models/gemini-2.0-flash-exp',
     systemInstruction: {
       parts: [{
-        text: `
+        text: customSystemInstruction || `
           You are a chat assistant with access to functions. When using functions, do not write code - instead use the function calling format.
 
           For example, when asked to run a test, respond with a function call like this:
@@ -102,234 +106,12 @@ export const useChatGemini = (apiKeyOrConfig: string | {
             }
           }
 
-          Book Data Structure:
-          type Book = {
-            keywords: string[]
-            criteriaPassed: boolean
-            bundlePossible: boolean
-            bsrCriteria: {
-              kindle: { amount: number, less: number, condition: boolean }
-              paperback: { amount: number, less: number, condition: boolean }
-              audible: { amount: number, less: number, condition: boolean }
-            }
-            search: { amount: number, condition: boolean }
-            topic: string
-            topicOptions: string[]
-            category: string
-            categoryOptions: string[]
-            subCategory: string
-            subCategoryOptions: string[]
-            categoryAnalysis: string
-            reviewsAnalysis: string
-            bookStructure: string
-            bookStructureBreakdown: string[]
-            chapters: string[]
-            bookPlan: string
-            cover: string
-            examples: Array<{
-              title: string
-              subtitle: string
-              description: string
-              cover: string
-              author: string
-              link: string
-              chapters: string[]
-              keywords: string[]
-              category: string
-              subCategory: string
-            }>
-          }
-
-          Available functions:
-          - testFunction: Test the function calling system
-            Parameters: message (string) - Test message to send
-
-          - callAI: Call another AI model
-            Parameters: text (string) - Text to send to the AI
-
-          - googleSearch: Performs a Google search
-            Parameters: query (string) - The search query to execute
-
-          - retrieveUser: Retrieves the current user's information
-            Parameters: fields (array of strings) - List of user fields to retrieve (optional)
-
-
-
-
-
-          - screenShot: Takes a screenshot of the current page
-            Parameters: none
-
-          - underStandingUpload: Uploads a file
-            Parameters: file (file | string) - The file to upload or base64 image string
-
-          - generateWordSearchWords: Add words to the word search puzzle
-            Parameters:
-              words (string[]) - List of words to add to the puzzle
-            Example:
-            {
-              "name": "generateWordSearchWords",
-              "args": {
-                "words": ["elephant", "giraffe", "penguin", "dolphin", "kangaroo", "octopus", "cheetah", "flamingo", "porcupine", "zebra"]
-              }
-            }
-            Note: When generating words:
-            - Easy: Use 3-5 letter words (e.g., cat, dog, owl)
-            - Medium: Use 5-8 letter words (e.g., rabbit, monkey, penguin)
-            - Hard: Use 8+ letter words or compound words (e.g., crocodile, hippopotamus, hummingbird)
-
-          - updateWordSearchSettings: Update word search puzzle settings
-            Parameters:
-              settings (object) - Object containing any of these properties:
-                size (number) - Grid size (5-20)
-                words (string[]) - List of words
-                theme (string) - Puzzle theme
-                difficulty (string) - 'easy', 'medium', or 'hard'
-                textColor (string) - Hex color for text
-                backgroundColor (string) - Hex color for background
-                borderColor (string) - Hex color for borders
-                locationsColor (string) - Hex color for found words
-            Example:
-            {
-              "name": "updateWordSearchSettings",
-              "args": {
-                "settings": {
-                  "size": 15,
-                  "theme": "animals",
-                  "difficulty": "medium"
-                }
-              }
-            }
-
-          - suggestWordSearchSettings: Apply suggested settings to the word search puzzle
-            Parameters:
-              settings (object) - Object containing suggested settings (same structure as updateWordSearchSettings)
-            Example:
-            {
-              "name": "suggestWordSearchSettings",
-              "args": {
-                "settings": {
-                  "size": 12,
-                  "theme": "animals",
-                  "difficulty": "medium",
-                  "textColor": "#000000",
-                  "backgroundColor": "#ffffff",
-                  "borderColor": "#000000",
-                  "locationsColor": "#ff0000"
-                }
-              }
-            }
-
-          - selectElement: Select an element in the editor by its ID
-            Parameters:
-              elementId (string) - ID of the element to select
-            Example:
-            {
-              "name": "selectElement",
-              "args": {
-                "elementId": "puzzle-123"
-              }
-            }
-
-          - orderElement: Change the stacking order of the selected element
-            Parameters:
-              action (string) - Either 'front' or 'back'
-            Example:
-            {
-              "name": "orderElement",
-              "args": {
-                "action": "front"
-              }
-            }
-
-          - updateElementStyle: Update an element's position or size
-            Parameters:
-              elementId (string) - ID of the element to update
-              style (object) - Object containing any of:
-                left (string) - Left position
-                top (string) - Top position
-                width (string) - Width
-                height (string) - Height
-            Example:
-            {
-              "name": "updateElementStyle",
-              "args": {
-                "elementId": "puzzle-123",
-                "style": {
-                  "left": "100px",
-                  "top": "200px"
-                }
-              }
-            }
-
-          - updatePuzzleProperties: Update visual properties of a puzzle
-            Parameters:
-              elementId (string) - ID of the puzzle to update
-              properties (object) - Object containing any of:
-                textColor (string) - Color for puzzle text
-                backgroundColor (string) - Color for puzzle background
-                borderColor (string) - Color for puzzle borders
-                locationsColor (string) - Color for found words
-                showSolution (boolean) - Whether to show the solution
-            Example:
-            {
-              "name": "updatePuzzleProperties",
-              "args": {
-                "elementId": "puzzle-123",
-                "properties": {
-                  "backgroundColor": "#00ff00",
-                  "showSolution": true
-                }
-              }
-            }
-            Note: These properties can be updated without regenerating the puzzle.
-            Do not attempt to modify grid size, words, or other structural properties.
-
-          - getEditorState: Get information about the current page and its elements
-            Parameters:
-              requestType (string) - Type of information to retrieve
-            Returns: Object containing:
-              - currentPage: Information about the current page including all elements
-              - selectedElement: ID of the currently selected element
-            Example:
-            {
-              "name": "getEditorState",
-              "args": {
-                "requestType": "all"
-              }
-            }
-
-            ${systemInstructionRouting()}
-
-
-
-            - setCanvasMainElement: Set the routing element where the user will navigate
-            Parameters:
-              name (string) - The name of the element to set as the main element
-              description (string) - The description of the element
-              className (string) - The class name of the element
-              props (object) - The properties of the element
-              example:
-              {
-    name: 'publishingBookEditor',
-    description: 'Editor for publishing books',
-    className: '',
-    props: {
-      default: true,
-    },
-  }
-
-            Note: Use this function to get information about elements before trying to modify them.
-
           Remember: Never write code or suggest code - only use the function calling format.
 
           IMPORTANT: You are a chat assistant for the One Person Empire. You are not an AI. You are a human.
 
           CONTEXT: When a function is called with information, I will send the information to you and start the message with /context which you should not respond to its just so that you have the context.
-
-          - callAgencies: Call the Agencies
-            Parameters: prompt (string) - The prompt to send to the Agencies
-          `
+        `
       }]
     },
     generationConfig: {
@@ -341,339 +123,22 @@ export const useChatGemini = (apiKeyOrConfig: string | {
     },
     tools: {
       functionDeclarations: [
-        {
-          name: "testFunction",
-          description: "A test function that returns a simple message",
-          parameters: {
-            type: "object",
-            properties: {
-              message: {
-                type: "string",
-                description: "The test message to return"
-              }
-            },
-            required: ["message"]
-          }
-        },
-        {
-          name: "callAI",
-          description: "Calls the AI endpoint with a message",
-          parameters: {
-            type: "object",
-            properties: {
-              text: {
-                type: "string",
-                description: "The message to send to the AI"
-              }
-            },
-            required: ["text"]
-          }
-        },
-        {
-          name: "googleSearch",
-          description: "Performs a Google search",
-          parameters: {
-            type: "object",
-            properties: {
-              query: {
-                type: "string",
-                description: "The search query to execute"
-              }
-            },
-            required: ["query"]
-          }
-        },
-        {
-          name: "retrieveUser",
-          description: "Retrieves the current user's information",
-          parameters: {
-            type: "object",
-            properties: {
-              fields: {
-                type: "array",
-                items: {
-                  type: "string",
-                  enum: ["name", "email", "avatar", "role", "preferences"]
-                },
-                description: "List of user fields to retrieve (optional)"
-              }
-            },
-            required: []
-          }
-        },
-
-        {
-          name: "screenShot",
-          description: "Takes a screenshot of the current page",
-          parameters: {
-            type: "object",
-            properties: {
-              screenshot: {
-                type: "string",
-                description: "The screenshot to upload"
-              }
-            },
-            required: ["screenshot"]
-          }
-        },
-        {
-          name: "understandingUpload",
-          description: "Uploads a file or base64 image string for analysis",
-          parameters: {
-            type: "object",
-            properties: {
-              file: {
-                type: "string",
-                description: "The file to upload (can be a File object or base64 image string)"
-              }
-            },
-            required: ["file"]
-          }
-        },
-        {
-          name: "generateWordSearchWords",
-          description: "Add words to the word search puzzle",
-          parameters: {
-            type: "object",
-            properties: {
-              words: {
-                type: "array",
-                items: {
-                  type: "string"
-                },
-                description: "List of words to add to the puzzle"
-              }
-            },
-            required: []
-          }
-        },
-        {
-          name: "updateWordSearchSettings",
-          description: "Update word search puzzle settings",
-          parameters: {
-            type: "object",
-            properties: {
-              settings: {
-                type: "object",
-                properties: {
-                  size: {
-                    type: "number",
-                    description: "Grid size (5-20)"
-                  },
-                  words: {
-                    type: "array",
-                    items: {
-                      type: "string"
-                    },
-                    description: "List of words"
-                  },
-                  theme: {
-                    type: "string",
-                    description: "Puzzle theme"
-                  },
-                  difficulty: {
-                    type: "string",
-                    description: "Difficulty level: 'easy', 'medium', or 'hard'"
-                  },
-                  textColor: {
-                    type: "string",
-                    description: "Hex color for text"
-                  },
-                  backgroundColor: {
-                    type: "string",
-                    description: "Hex color for background"
-                  },
-                  borderColor: {
-                    type: "string",
-                    description: "Hex color for borders"
-                  },
-                  locationsColor: {
-                    type: "string",
-                    description: "Hex color for found words"
-                  }
-                }
-              }
-            },
-            required: ["settings"]
-          }
-        },
-        {
-          name: "suggestWordSearchSettings",
-          description: "Apply suggested settings to the word search puzzle",
-          parameters: {
-            type: "object",
-            properties: {
-              settings: {
-                type: "object",
-                properties: {
-                  size: {
-                    type: "number",
-                    description: "Grid size (5-20)"
-                  },
-                  words: {
-                    type: "array",
-                    items: {
-                      type: "string"
-                    },
-                    description: "List of words"
-                  },
-                  theme: {
-                    type: "string",
-                    description: "Puzzle theme"
-                  },
-                  difficulty: {
-                    type: "string",
-                    description: "Difficulty level: 'easy', 'medium', or 'hard'"
-                  },
-                  textColor: {
-                    type: "string",
-                    description: "Hex color for text"
-                  },
-                  backgroundColor: {
-                    type: "string",
-                    description: "Hex color for background"
-                  },
-                  borderColor: {
-                    type: "string",
-                    description: "Hex color for borders"
-                  },
-                  locationsColor: {
-                    type: "string",
-                    description: "Hex color for found words"
-                  }
-                }
-              }
-            },
-            required: ["settings"]
-          }
-        },
-        {
-          name: "selectElement",
-          description: "Select an element in the editor by its ID",
-          parameters: {
-            type: "object",
-            properties: {
-              elementId: {
-                type: "string",
-                description: "ID of the element to select"
-              }
-            },
-            required: ["elementId"]
-          }
-        },
-        {
-          name: "orderElement",
-          description: "Change the stacking order of the selected element",
-          parameters: {
-            type: "object",
-            properties: {
-              action: {
-                type: "string",
-                description: "Either 'front' or 'back'"
-              }
-            },
-            required: ["action"]
-          }
-        },
-        {
-          name: "updateElementStyle",
-          description: "Update an element's position or size",
-          parameters: {
-            type: "object",
-            properties: {
-              elementId: {
-                type: "string",
-                description: "ID of the element to update"
-              },
-              style: {
-                type: "object",
-                properties: {
-                  left: {
-                    type: "string",
-                    description: "Left position"
-                  },
-                  top: {
-                    type: "string",
-                    description: "Top position"
-                  },
-                  width: {
-                    type: "string",
-                    description: "Width"
-                  },
-                  height: {
-                    type: "string",
-                    description: "Height"
-                  }
-                }
-              }
-            },
-            required: ["elementId", "style"]
-          }
-        },
-        {
-          name: "updatePuzzleProperties",
-          description: "Update visual properties of a puzzle",
-          parameters: {
-            type: "object",
-            properties: {
-              elementId: {
-                type: "string",
-                description: "ID of the puzzle to update"
-              },
+        ...customFunctions || [
+          {
+            name: 'testFunction',
+            description: 'A test function for demonstration',
+            parameters: {
+              type: 'object',
               properties: {
-                type: "object",
-                properties: {
-                  textColor: {
-                    type: "string",
-                    description: "Color for puzzle text"
-                  },
-                  backgroundColor: {
-                    type: "string",
-                    description: "Color for puzzle background"
-                  },
-                  borderColor: {
-                    type: "string",
-                    description: "Color for puzzle borders"
-                  },
-                  locationsColor: {
-                    type: "string",
-                    description: "Color for found words"
-                  },
-                  showSolution: {
-                    type: "boolean",
-                    description: "Whether to show the solution"
-                  }
+                message: {
+                  type: 'string',
+                  description: 'The message to display'
                 }
-              }
-            },
-            required: ["elementId", "properties"]
+              },
+              required: ['message']
+            }
           }
-        },
-        {
-          name: "getEditorState",
-          description: "Get information about the current page and its elements",
-          parameters: {
-            type: "object",
-            properties: {
-              requestType: {
-                type: "string",
-                description: "Type of information to retrieve",
-                enum: ["all"]
-              }
-            },
-            required: ["requestType"]
-          }
-        },
-        {
-          name: "callAgencies",
-          description: "Call the Agencies",
-          parameters: {
-            type: "object",
-            properties: { prompt: { type: "string" } },
-            required: ["prompt"]
-          }
-        },
-       ...functionDeclarationsRouting,
+        ]
       ]
     }
   }
@@ -703,47 +168,98 @@ export const useChatGemini = (apiKeyOrConfig: string | {
       return [];
     }
     
-    return declarations.map(func => {
+    console.log(`Sanitizing ${declarations.length} function declarations for ${stateKey}`);
+    
+    // Helper function to recursively process object properties
+    const processObjectProperties = (props, path = '') => {
+      if (!props || typeof props !== 'object') return {};
+      
+      const result = {};
+      
+      Object.entries(props).forEach(([propName, propValue]) => {
+        const propPath = path ? `${path}.${propName}` : propName;
+        const safeProp = { ...propValue };
+        
+        // Remove default property as it's not supported
+        if ('default' in safeProp) {
+          console.log(`Removing 'default' from ${propPath}`);
+          delete safeProp.default;
+        }
+        
+        // Handle nested object properties recursively
+        if (safeProp.type === 'object' && safeProp.properties) {
+          safeProp.properties = processObjectProperties(safeProp.properties, propPath);
+        }
+        
+        // Ensure basic properties are present
+        safeProp.type = safeProp.type || 'string';
+        safeProp.description = safeProp.description || `Parameter ${propName}`;
+        
+        result[propName] = safeProp;
+      });
+      
+      return result;
+    };
+    
+    return declarations.map((func, index) => {
       try {
-        if (!func.name || typeof func.name !== 'string') {
-          console.error('Function declaration missing name or name is not a string:', func);
+        // Basic function validation
+        if (!func || typeof func !== 'object') {
+          console.error(`Function at index ${index} is not an object:`, func);
           return null;
         }
         
+        if (!func.name || typeof func.name !== 'string') {
+          console.error(`Function at index ${index} missing name or name is not a string:`, func);
+          return null;
+        }
+        
+        console.log(`Processing function: ${func.name}`);
+        
+        // Create a clean function declaration with the exact structure Gemini expects
         const cleanFunc: any = {
           name: func.name,
           description: func.description || 'No description provided.',
           parameters: {
             type: 'object',
-            properties: {}
+            properties: {},
+            required: []
           }
         };
         
-        if (func.parameters && func.parameters.properties) {
-          Object.entries(func.parameters.properties).forEach(([propName, propValue]) => {
-            const safeProp: any = { ...propValue };
-            delete safeProp.default;
-            
-            // Ensure type and description are present
-            safeProp.type = safeProp.type || 'string';
-            safeProp.description = safeProp.description || 'No description provided.';
-            
-            cleanFunc.parameters.properties[propName] = safeProp;
-          });
+        // Process parameters if they exist
+        if (func.parameters) {
+          cleanFunc.parameters.type = 'object';
+          
+          // Process each property, handling nested objects
+          if (func.parameters.properties && typeof func.parameters.properties === 'object') {
+            cleanFunc.parameters.properties = processObjectProperties(func.parameters.properties);
+          }
+          
+          // Handle required properties - ensure it's an array
+          if (func.parameters.required) {
+            if (Array.isArray(func.parameters.required)) {
+              cleanFunc.parameters.required = func.parameters.required;
+            } else {
+              console.warn(`Required field for function ${func.name} is not an array, using empty array`);
+              cleanFunc.parameters.required = [];
+            }
+          } else {
+            cleanFunc.parameters.required = [];
+          }
         }
         
-        if (func.parameters && func.parameters.required) {
-          cleanFunc.parameters.required = func.parameters.required;
-        } else {
-          cleanFunc.parameters.required = []; // Ensure required is always present
+        // Log the full cleaned function for the first few functions
+        if (index < 3) {
+          console.log(`Cleaned function ${func.name}:`, JSON.stringify(cleanFunc, null, 2));
         }
         
         return cleanFunc;
       } catch (e) {
-        console.error('Error sanitizing function:', func, e);
+        console.error(`Error sanitizing function at index ${index}:`, func, e);
         return null;
       }
-    }).filter(Boolean);
+    }).filter(Boolean); // Remove null values
   };
   
   // Update Text Config if custom functions or system instruction provided
@@ -758,10 +274,10 @@ export const useChatGemini = (apiKeyOrConfig: string | {
         functionDeclarations: sanitizedFunctions
       };
       
-      // Debug logging - output the first function to check format
+      // Debug logging - output the first function to help with debugging
       if (sanitizedFunctions.length > 0) {
-        console.log('Sample function declaration:', 
-                    JSON.stringify(sanitizedFunctions[0]).substring(0, 150) + '...');
+        console.log(`First function declaration for ${stateKey}:`, 
+                  JSON.stringify(sanitizedFunctions[0]));
       }
     } catch (err) {
       console.error('Failed to apply custom functions:', err);
@@ -817,12 +333,21 @@ export const useChatGemini = (apiKeyOrConfig: string | {
         try {
           // Validate JSON before sending
           const setupString = JSON.stringify(setupData);
-          JSON.parse(setupString); // This will throw if invalid JSON
+          
+          // Log ALL functions for better debugging
+          console.log(`All functions in setup for ${stateKey}:`, 
+            JSON.stringify(finalTextConfig.tools.functionDeclarations.map(f => f.name)));
+          
+          // For CRM agency, log the full function declarations to debug
+          if (stateKey.includes('crm')) {
+            console.log(`FULL CRM FUNCTIONS:`, 
+              JSON.stringify(finalTextConfig.tools.functionDeclarations, null, 2));
+          }
           
           ws.send(setupString)
         } catch (jsonError) {
           console.error('Invalid setup JSON:', jsonError);
-          console.error('First 500 chars of JSON:', JSON.stringify(setupData).substring(0, 500));
+          console.error('JSON validation failed');
           
           // Close with error
           ws.close(1000, 'Invalid setup JSON');
