@@ -13,11 +13,11 @@ Functions are organized by domain in the `/functions` directory structure:
 ```
 /functions
 ├── index.ts               # Main exports and shared handlers
+├── groups.ts              # Function group definitions and exports
 ├── routing/               # Routing-related functions
 ├── publishing/            # Publishing-related functions
 ├── research/              # Research-related functions
-├── crm/                   # CRM-related functions
-└── groups.ts              # Function group definitions and exports
+└── crm/                   # CRM-related functions
 ```
 
 Each function group consists of:
@@ -30,8 +30,7 @@ Each function group consists of:
 Function groups are registered in `functions/groups.ts`:
 
 ```typescript
-// Example structure of function groups
-export const functionGroups = {
+export const functionGroups: Record<string, FunctionGroup> = {
   // Research function group
   research: {
     declarations: [
@@ -39,14 +38,27 @@ export const functionGroups = {
       {
         name: "googleSearch",
         description: "Performs a Google search",
-        parameters: { /* parameter definitions */ }
+        parameters: {
+          type: "object",
+          properties: {
+            query: {
+              type: "string",
+              description: "The search query"
+            },
+            numResults: {
+              type: "number",
+              description: "Number of results to return",
+              default: 5
+            }
+          },
+          required: ["query"]
+        }
       },
       // More research functions...
     ],
     handlers: {
       // Implementation of functions
       googleSearch: async (args, context) => { /* implementation */ }
-      // More handlers...
     },
     systemInstruction: () => `
       You are a research assistant that can help find information using search engines.
@@ -54,27 +66,84 @@ export const functionGroups = {
     `
   },
   
-  // Publishing function group
-  publishing: {
-    declarations: [/* publishing function declarations */],
-    handlers: {/* publishing function implementations */},
-    systemInstruction: () => `
-      You are a book publishing assistant that can help analyze markets and plan book projects.
-    `
-  },
-  
-  // CRM function group
-  crm: {
-    declarations: [/* CRM function declarations */],
-    handlers: {/* CRM function implementations */},
-    systemInstruction: () => `
-      You are a CRM assistant that can help manage customer relationships.
-    `
+  // Other function groups follow the same pattern...
+}
+```
+
+### 3. Function Declaration Structure
+
+When defining functions, pay careful attention to nested object parameters which require proper structured definitions:
+
+```typescript
+// CORRECT: Properly defined nested object
+{
+  name: "updateCustomerRecord",
+  description: "Updates a customer record",
+  parameters: {
+    type: "object",
+    properties: {
+      customerId: {
+        type: "string",
+        description: "The customer's unique identifier"
+      },
+      fields: {
+        type: "object",
+        description: "The fields to update",
+        properties: {  // Define nested properties explicitly
+          name: {
+            type: "string",
+            description: "Customer name"
+          },
+          email: {
+            type: "string",
+            description: "Customer email"
+          }
+        }
+      }
+    },
+    required: ["customerId", "fields"]
+  }
+}
+
+// INCORRECT: Generic object without properties
+{
+  name: "updateCustomerRecord",
+  parameters: {
+    type: "object",
+    properties: {
+      customerId: { type: "string" },
+      fields: { type: "object" }  // Missing nested properties!
+    }
   }
 }
 ```
 
-### 3. Dynamic Agency Composable
+### 4. Function Group Combination
+
+The `combineGroups` function in `functions/index.ts` combines multiple function groups for an agency:
+
+```typescript
+const combinedGroups = combineGroups(['crm', 'research']);
+// Results in:
+// {
+//   declarations: [...crmFunctions, ...researchFunctions],
+//   handlers: {...crmHandlers, ...researchHandlers},
+//   systemInstruction: crmInstructions + researchInstructions
+// }
+```
+
+This combined group is then used to configure the Gemini API or server-based agency.
+
+### 5. Function Sanitization
+
+Before sending function declarations to Gemini, they are sanitized to ensure compatibility:
+
+1. Removal of unsupported properties (e.g., `default`)
+2. Recursively processing nested object properties
+3. Ensuring required fields are present and properly formatted
+4. Validating enum values are arrays
+
+## Agency Configuration
 
 The `useChatAgency` composable provides a flexible way to create specialized chat agents:
 
@@ -83,14 +152,16 @@ The `useChatAgency` composable provides a flexible way to create specialized cha
 const crmAgent = useChatAgency({
   apiKey: 'your-gemini-api-key',
   functionGroups: ['crm', 'research'], // Use functions from multiple groups
-  customInstructions: 'Focus on helping with customer relationship management.'
+  customInstructions: 'Focus on helping with customer relationship management.',
+  enableVoice: true,
+  enableScreenShare: false
 })
 
 // Server-based specialized agent
 const publishingAgent = useChatAgency({
   serverBased: true,
   serverUrl: 'wss://your-backend.com/agency/publishing',
-  functionGroups: ['publishing']
+  functionGroups: ['publishing', 'research']
 })
 ```
 
@@ -130,7 +201,7 @@ Both connection modes support the same interaction modalities:
 - Voice input via microphone
 - Voice output via text-to-speech
 - Real-time streaming for both input/output
-- Uses the same `useVoiceRecorder` and `useAudioPlayer` composables as Gemini
+- Uses the same `useVoiceRecorder` and `useAudioPlayer` composables
 
 ### 3. Screen Share
 
@@ -141,9 +212,9 @@ Both connection modes support the same interaction modalities:
 
 ## Integration with Existing UI
 
-The agency system integrates with the existing UI components without modification:
+The agency system integrates with the existing UI components:
 
-1. **Chat Selection**: When a user selects a chat in `ChatConversationList`, the system:
+1. **Chat Selection**: When a user selects a chat, the system:
    - Identifies the agency type from the conversation object
    - Initializes the appropriate agency with the correct function groups
    - Establishes connection (Gemini or WebSocket backend)
@@ -155,31 +226,50 @@ The agency system integrates with the existing UI components without modificatio
    - `ChatConversationTypesVoice` for voice input
    - `ChatConversationTypesShare` for screen sharing
 
-## Conversation Configuration
+## Best Practices
 
-Each conversation in the chat system includes configuration for its agency type:
+1. **Function Group Organization**:
+   - Keep related functions together in logical groups
+   - Provide clear documentation for each function
+   - Follow consistent naming conventions
 
-```typescript
-// Example conversation object
-{
-  id: 'conv-123',
-  title: 'CRM Assistant',
-  user: {
-    name: 'CRM Agent',
-    photo: '/img/avatars/crm-agent.svg',
-    role: 'agency'
-  },
-  messages: [],
-  agency: {
-    type: 'crm',
-    functionGroups: ['crm', 'research'],
-    serverBased: false,
-    customInstructions: 'You are a CRM assistant focused on helping manage customer relationships.'
-  }
-}
-```
+2. **Function Declaration**:
+   - Always specify detailed properties for object parameters
+   - Use proper typing for parameters (string, number, boolean, object, array)
+   - Provide meaningful descriptions for each parameter
+   - Specify required parameters in the required array
+   - For nested objects, define all child properties explicitly
 
-## Flow Diagram
+3. **Agency Design**:
+   - Single responsibility: Each agency should have a clear purpose
+   - Appropriate connection mode: Choose Gemini for simple agents, WebSocket for complex ones
+   - Minimal function sets: Only include the functions the agency needs
+
+4. **Error Handling**:
+   - Implement robust sanitization for function declarations
+   - Provide meaningful error messages in the UI
+   - Handle connection failures gracefully
+   - Log detailed information for debugging purposes
+
+## Debugging Tips
+
+1. **Function Declaration Issues**:
+   - Check the browser console for sanitization warnings
+   - Ensure all object properties have explicit property definitions
+   - Verify that required fields are properly set as arrays
+   - Remove any `default` properties as Gemini doesn't support them
+
+2. **Connection Problems**:
+   - Examine WebSocket close events in the console for specific error messages
+   - Validate API keys and server URLs
+   - Check network requests for any 4xx or 5xx responses
+
+3. **Function Execution**:
+   - Add debugging logs in function handlers
+   - Check that function declarations match expected names in handlers
+   - Verify context properties are correctly passed to handlers
+
+## Architecture Diagram
 
 ```
 ┌─────────────┐     ┌─────────────────┐     ┌───────────────┐
@@ -210,53 +300,64 @@ Each conversation in the chat system includes configuration for its agency type:
 └─────────────┘
 ```
 
-## Integration Example
+## Adding a New Agency
 
-Here's how to add a new agency chat to the system:
+To add a new agency type to the system:
 
-1. **Define Agency Functions**:
-   - Add new function declarations and handlers to appropriate groups
-   - Or create a new function group if needed
+1. **Define Functions**:
+   ```typescript
+   // Add to functions/groups.ts
+   export const functionGroups = {
+     myNewAgency: {
+       declarations: [
+         // Function declarations
+       ],
+       handlers: {
+         // Function implementations
+       },
+       systemInstruction: () => `
+         // Agency instructions
+       `
+     },
+     // ...existing groups
+   }
+   ```
 
-2. **Create Agency Configuration**:
-   - Define agency type, function groups, and connection mode
-   - Add any custom instructions
+2. **Create Agency Instance**:
+   ```typescript
+   // In your composable
+   const myNewAgency = useChatAgency({
+     apiKey: config.public.geminiApiKey,
+     functionGroups: ['myNewAgency', 'research'],
+     customInstructions: 'Your custom instructions here.',
+     enableVoice: true
+   })
+   ```
 
 3. **Register in Chat System**:
-   - Add the agency to available conversations
-   - The UI will automatically use the correct agency when selected
+   ```typescript
+   // Add to conversations list
+   const conversations = useState<Conversation[]>('conversations', () => [
+     // ...existing conversations
+     {
+       id: nextId,
+       user: {
+         name: 'My New Assistant',
+         photo: '/img/avatars/new-assistant.svg',
+         role: 'my-new-agency',
+         bio: 'I am your new specialized assistant.',
+         age: 1,
+         location: 'Agency Cloud',
+       },
+       messages: [],
+     }
+   ])
 
-## Advanced Features
+   // Add to agency mapping
+   const agencyChats = {
+     // ...existing agencies
+     'my-new-agency': myNewAgency
+   }
+   ```
 
-### 1. Mixed Function Groups
-
-Agencies can mix functions from multiple groups. For example, a publishing agent might use functions from both publishing and research groups.
-
-### 2. Dynamic System Instructions
-
-System instructions are generated dynamically based on the function groups included, ensuring the AI understands the full range of capabilities.
-
-### 3. Fallback Support
-
-If a specific function isn't found in the agency's function groups, the system will check global handlers as a fallback.
-
-### 4. State Persistence
-
-Both Gemini and WebSocket backends support conversation persistence and can restore state when reconnecting to an existing conversation.
-
-## Best Practices
-
-1. **Function Group Organization**:
-   - Keep related functions together in logical groups
-   - Provide clear documentation for each function
-   - Follow consistent naming conventions
-
-2. **Agency Design**:
-   - Single responsibility: Each agency should have a clear purpose
-   - Appropriate connection mode: Choose Gemini for simple agents, WebSocket for complex ones
-   - Minimal function sets: Only include the functions the agency needs
-
-3. **Error Handling**:
-   - Provide graceful fallbacks for connection issues
-   - Clear error messages in the UI
-   - Reconnection logic for temporary disruptions
+With these implementations, your agency system now provides a flexible, maintainable framework for creating specialized AI assistants with different capabilities and connection modes.
