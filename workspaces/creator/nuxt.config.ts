@@ -192,6 +192,10 @@ export default defineNuxtConfig({
 
   css: [
     '~/assets/css/colors.css',
+    '~/assets/css/apexcharts.css',
+    '~/assets/css/slider.css',
+    '~/assets/css/vcalendar.css',
+    '~/assets/css/vcalendar-weekly.css',
     '@fontsource-variable/fira-code/index.css',
     '@fontsource-variable/inter/index.css',
     '@fontsource-variable/karla/index.css',

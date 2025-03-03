@@ -27,10 +27,16 @@ export interface ChatAgencyOptions {
 }
 
 export interface ChatMessage {
-  role: 'user' | 'assistant';
-  content: string;
+  role?: 'user' | 'assistant' | 'system' | 'function';
+  content?: string;
   type?: string;
   time?: string;
+  text?: string;
+  attachments?: any[];
+  functionCall?: {
+    name: string;
+    arguments: Record<string, any>;
+  };
 }
 
 export interface ChatAgencyState {
@@ -40,9 +46,50 @@ export interface ChatAgencyState {
   error: Ref<Error | null>
 }
 
+// Define interfaces for the types returned by other composables
+interface GeminiInterface {
+  isConnected: Ref<boolean>;
+  connectionError: Ref<string>;
+  messages: Ref<ChatMessage[]>;
+  textError: Ref<string>;
+  voiceMessages: Ref<ChatMessage[]>;
+  isVoiceStreaming: Ref<boolean>;
+  voiceError: Ref<string>;
+  startVoiceRecording: () => Promise<any>;
+  openGeminiConnection: () => WebSocket | null;
+  sendMessage: (text: string) => Promise<void>;
+  sendVoiceMessage: (audioBlob: Blob) => Promise<void>;
+  sendContextInfo: (contextInfo: string) => Promise<void>;
+  api: { sendRealtimeInput: (mediaChunks: any[]) => void };
+  toggleReadText: () => void;
+  stopSpeaking: () => void;
+  // Extended properties used in the code that might not be in the original interface
+  rawResponses?: any;
+  streamingContent?: Ref<string>;
+  transcribeAudio?: (audioBlob: Blob) => Promise<string>;
+  sendImageMessage?: (imageData: string) => Promise<void>;
+}
+
+interface AudioPlayerInterface {
+  playAudioResponse: (audioData: ArrayBuffer) => void;
+  playTTS?: (text: string) => void;
+}
+
+interface VideoInterface {
+  state: Ref<any>;
+  videoRef: Ref<any>;
+  canvasRef: Ref<any>;
+  startCapture?: () => Promise<void>;
+  captureFrame?: () => Promise<string>;
+  stopCapture?: () => Promise<void>;
+}
+
+// Type for function handlers
+type FunctionHandler = (args: Record<string, any>) => Promise<any>;
+
 export function useChatAgency(options: ChatAgencyOptions) {
   // Create independent state for each agency instance
-  const messages = ref<any[]>([])
+  const messages = ref<ChatMessage[]>([])
   const isConnected = ref(false)
   const isLoading = ref(false)
   const error = ref<Error | null>(null)
@@ -66,10 +113,10 @@ export function useChatAgency(options: ChatAgencyOptions) {
   
   // Initialize voice capabilities if enabled
   const voiceRecorder = options.enableVoice ? useVoiceRecorder() : null
-  const audioPlayer = options.enableVoice ? useAudioPlayer() : null
+  const audioPlayer = options.enableVoice ? useAudioPlayer() as AudioPlayerInterface : null
   
   // Initialize screen sharing if enabled
-  const videoShare = options.enableScreenShare ? useVideo() : null
+  const videoShare = options.enableScreenShare ? useVideo() as VideoInterface : null
   
   // Connection and message handling will differ based on connection mode
   let sendMessage: (content: string) => Promise<void>
@@ -147,18 +194,19 @@ export function useChatAgency(options: ChatAgencyOptions) {
             // Handle function calls from the server
             const { functionName, args } = message.functionCall || {}
             
-            if (combinedGroups.value.handlers[functionName]) {
+            if (functionName && combinedGroups.value.handlers && 
+                typeof combinedGroups.value.handlers[functionName] === 'function') {
               isLoading.value = true
               
-              combinedGroups.value.handlers[functionName](args)
-                .then(result => {
+              (combinedGroups.value.handlers[functionName] as FunctionHandler)(args || {})
+                .then((result: any) => {
                   send(JSON.stringify({
                     type: 'function_result',
                     functionName,
                     result
                   }))
                 })
-                .catch(err => {
+                .catch((err: Error) => {
                   send(JSON.stringify({
                     type: 'function_error',
                     functionName,
@@ -334,7 +382,7 @@ export function useChatAgency(options: ChatAgencyOptions) {
       functions: combinedGroups.value.declarations,
       systemInstruction: systemInstruction.value,
       stateKey: agencyId
-    });
+    }) as GeminiInterface;
     
     // IMPORTANT: Don't directly link to gemini.messages - create our own messages store
     // Initialize with any existing messages from Gemini
@@ -394,15 +442,16 @@ export function useChatAgency(options: ChatAgencyOptions) {
         
         return true;
       } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Unknown error';
         console.error(`Failed to initialize connection for agency ${agencyId}:`, err);
         error.value = err instanceof Error ? err : new Error('Failed to connect');
         
         // Add more descriptive error to chat
         messages.value = [...messages.value, {
           role: 'system',
-          content: `Connection error: ${err.message || 'Could not connect to Gemini API'}`,
+          content: `Connection error: ${errorMessage}`,
           type: 'error',
-          text: `Connection error: ${err.message || 'Could not connect to Gemini API'}`,
+          text: `Connection error: ${errorMessage}`,
           time: new Date().toLocaleTimeString()
         }];
         
@@ -411,7 +460,7 @@ export function useChatAgency(options: ChatAgencyOptions) {
     };
     
     // Helper function to format Gemini messages properly
-    const formatGeminiMessage = (msg: any) => {
+    const formatGeminiMessage = (msg: any): ChatMessage => {
       // If the message already has our format, return it
       if (msg.type && msg.text && msg.time) {
         return msg;
@@ -431,7 +480,7 @@ export function useChatAgency(options: ChatAgencyOptions) {
           };
         } else if (msg.serverContent.turnComplete) {
           // This is just a completion notification, not a message to display
-          return null;
+          return {} as ChatMessage;
         }
       }
       
@@ -445,28 +494,30 @@ export function useChatAgency(options: ChatAgencyOptions) {
     };
     
     // Watch for raw responses from Gemini
-    watch(() => gemini.rawResponses, (newResponses) => {
-      if (Array.isArray(newResponses) && newResponses.length > 0) {
-        const lastResponse = newResponses[newResponses.length - 1];
-        
-        // Process serverContent format
-        if (lastResponse.serverContent) {
-          const formattedMessage = formatGeminiMessage(lastResponse);
-          if (formattedMessage) {
-            // Check if this message already exists in our messages array
-            const exists = messages.value.some(m => 
-              m.text === formattedMessage.text && 
-              m.type === formattedMessage.type
-            );
-            
-            if (!exists) {
-              console.log("Adding new message from rawResponses:", formattedMessage);
-              messages.value = [...messages.value, formattedMessage];
+    if (gemini.rawResponses) {
+      watch(() => gemini.rawResponses, (newResponses) => {
+        if (Array.isArray(newResponses) && newResponses.length > 0) {
+          const lastResponse = newResponses[newResponses.length - 1];
+          
+          // Process serverContent format
+          if (lastResponse.serverContent) {
+            const formattedMessage = formatGeminiMessage(lastResponse);
+            if (formattedMessage && Object.keys(formattedMessage).length > 0) {
+              // Check if this message already exists in our messages array
+              const exists = messages.value.some(m => 
+                m.text === formattedMessage.text && 
+                m.type === formattedMessage.type
+              );
+              
+              if (!exists) {
+                console.log("Adding new message from rawResponses:", formattedMessage);
+                messages.value = [...messages.value, formattedMessage];
+              }
             }
           }
         }
-      }
-    }, { deep: true });
+      }, { deep: true });
+    }
     
     // Watch for changes in Gemini messages and update our copy
     watch(() => gemini.messages.value, (newMessages) => {
@@ -474,7 +525,7 @@ export function useChatAgency(options: ChatAgencyOptions) {
         // Process each message and format it correctly
         const formattedMessages = newMessages
           .map(formatGeminiMessage)
-          .filter(Boolean); // Remove nulls
+          .filter(msg => Object.keys(msg).length > 0); // Remove empty messages
         
         // Only update if there are actual changes to avoid unnecessary re-renders
         const currentMsgTexts = messages.value.map(m => m.text);
@@ -490,8 +541,7 @@ export function useChatAgency(options: ChatAgencyOptions) {
       isLoading.value = false;
     }, { deep: true });
     
-    // REMOVE the onRawEvent call that's causing errors
-    // Instead, use a watcher for any streaming data property if it exists
+    // Use a watcher for any streaming data property if it exists
     if (gemini.streamingContent) {
       watch(() => gemini.streamingContent.value, (newContent) => {
         if (newContent) {
@@ -525,37 +575,40 @@ export function useChatAgency(options: ChatAgencyOptions) {
     // Create our own handler since onFunctionCall doesn't exist
     watch(() => gemini.messages.value, (newMessages, oldMessages) => {
       // Check if there's a new message with a function call
-      const newMessage = newMessages[newMessages.length - 1]
-      if (newMessage?.functionCall) {
-        const { name, arguments: args } = newMessage.functionCall
-        
-        if (combinedGroups.value.handlers[name]) {
-          isLoading.value = true
+      if (newMessages.length > oldMessages.length) {
+        const newMessage = newMessages[newMessages.length - 1] as ChatMessage;
+        if (newMessage?.functionCall) {
+          const { name, arguments: args } = newMessage.functionCall;
           
-          // Execute the function handler
-          combinedGroups.value.handlers[name](args)
-            .then(result => {
-              // Return the result back to Gemini
-              return gemini.sendMessage(JSON.stringify({ result }))
-            })
-            .catch(err => {
-              error.value = err
-              return gemini.sendMessage(JSON.stringify({ 
-                error: err.message || 'An error occurred executing the function'
-              }))
-            })
-            .finally(() => {
-              isLoading.value = false
-            })
-        } else {
-          error.value = new Error(`Function "${name}" not found in selected function groups`)
+          if (name && combinedGroups.value.handlers && 
+              typeof combinedGroups.value.handlers[name] === 'function') {
+            isLoading.value = true;
+            
+            // Execute the function handler
+            (combinedGroups.value.handlers[name] as FunctionHandler)(args || {})
+              .then((result: any) => {
+                // Return the result back to Gemini
+                return gemini.sendMessage(JSON.stringify({ result }));
+              })
+              .catch((err: Error) => {
+                error.value = err;
+                return gemini.sendMessage(JSON.stringify({ 
+                  error: err.message || 'An error occurred executing the function'
+                }));
+              })
+              .finally(() => {
+                isLoading.value = false;
+              });
+          } else {
+            error.value = new Error(`Function "${name}" not found in selected function groups`);
+          }
         }
       }
-    }, { deep: true })
+    }, { deep: true });
     
     // Define message sending functions
     sendMessage = async (content: string) => {
-      isLoading.value = true
+      isLoading.value = true;
       try {
         // Check connection status first and establish connection if needed
         if (!isConnected.value || !gemini.isConnected.value) {
@@ -583,116 +636,121 @@ export function useChatAgency(options: ChatAgencyOptions) {
         
         // Send message to Gemini API
         return await gemini.sendMessage(content);
-      } catch (err) {
-        error.value = err instanceof Error ? err : new Error('Failed to send message');
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        error.value = error instanceof Error ? error : new Error('Failed to send message');
         
         // Add error message to the chat
         messages.value = [...messages.value, {
           role: 'system',
-          content: `Error: ${err.message || 'Connection failed'}`,
+          content: `Error: ${errorMessage}`,
           type: 'error',
-          text: `Error: ${err.message || 'Connection failed'}`,
+          text: `Error: ${errorMessage}`,
           time: new Date().toLocaleTimeString()
         }];
         
-        throw err;
+        throw error;
       } finally {
         isLoading.value = false;
       }
-    }
+    };
     
     if (options.enableVoice && voiceRecorder && audioPlayer) {
       sendVoice = async (audioBlob: Blob) => {
-        isLoading.value = true
+        isLoading.value = true;
         try {
           // Check if transcribeAudio exists in gemini
-          if (typeof gemini.transcribeAudio === 'function') {
+          if (gemini.transcribeAudio && typeof gemini.transcribeAudio === 'function') {
             // Convert audio to text using Gemini
-            const audioText = await gemini.transcribeAudio(audioBlob)
+            const audioText = await gemini.transcribeAudio(audioBlob);
             
             // Send the transcribed text as a message
-            return await sendMessage(audioText)
+            return await sendMessage(audioText);
           } else {
             // Fallback - just tell the user we can't process audio
-            await sendMessage("I received your audio message, but I'm unable to process audio at this time.")
-            throw new Error('Audio transcription not available')
+            await sendMessage("I received your audio message, but I'm unable to process audio at this time.");
+            throw new Error('Audio transcription not available');
           }
         } catch (err) {
-          error.value = err instanceof Error ? err : new Error('Failed to process voice message')
-          throw err
+          const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+          error.value = err instanceof Error ? err : new Error('Failed to process voice message');
+          throw err;
         } finally {
-          isLoading.value = false
+          isLoading.value = false;
         }
-      }
+      };
       
       // Handle incoming messages for voice playback
       watch(() => gemini.messages.value, (newMessages, oldMessages) => {
         if (newMessages.length > oldMessages.length) {
-          const latestMessage = newMessages[newMessages.length - 1]
-          if (latestMessage.role === 'assistant' && latestMessage.content) {
-            audioPlayer?.playTTS(latestMessage.content)
+          const latestMessage = newMessages[newMessages.length - 1] as ChatMessage;
+          if (latestMessage?.role === 'assistant' && latestMessage?.content && 
+              audioPlayer?.playTTS && typeof audioPlayer.playTTS === 'function') {
+            audioPlayer.playTTS(latestMessage.content);
           }
         }
-      }, { deep: true })
+      }, { deep: true });
     }
     
     if (options.enableScreenShare && videoShare) {
       sendScreen = async (imageData: string) => {
-        isLoading.value = true
+        isLoading.value = true;
         try {
           // Check if sendImageMessage exists in gemini
-          if (typeof gemini.sendImageMessage === 'function') {
-            return await gemini.sendImageMessage(imageData)
+          if (gemini.sendImageMessage && typeof gemini.sendImageMessage === 'function') {
+            return await gemini.sendImageMessage(imageData);
           } else {
             // Fallback - describe the image
-            await sendMessage("I received a screenshot, but I'm unable to process images at this time.")
-            throw new Error('Image processing not available')
+            await sendMessage("I received a screenshot, but I'm unable to process images at this time.");
+            throw new Error('Image processing not available');
           }
         } catch (err) {
-          error.value = err instanceof Error ? err : new Error('Failed to send screen image')
-          throw err
+          const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+          error.value = err instanceof Error ? err : new Error('Failed to send screen image');
+          throw err;
         } finally {
-          isLoading.value = false
+          isLoading.value = false;
         }
-      }
+      };
     }
   }
   
   // Voice recording handlers
   const startRecording = async () => {
     if (voiceRecorder) {
-      await voiceRecorder.startRecording()
+      await voiceRecorder.startRecording();
     }
   }
   
   const stopRecording = async () => {
     if (voiceRecorder && sendVoice) {
-      const audioBlob: any = await voiceRecorder.stopRecording()
+      const audioBlob: any = await voiceRecorder.stopRecording();
       if (audioBlob) {
-        await sendVoice(audioBlob)
+        await sendVoice(audioBlob);
       }
     }
   }
   
   // Screen sharing handlers
   const startScreenShare = async () => {
-    if (videoShare) {
-      await videoShare.startCapture()
+    if (videoShare && videoShare.startCapture && typeof videoShare.startCapture === 'function') {
+      await videoShare.startCapture();
     }
   }
   
   const captureScreen = async () => {
-    if (videoShare && sendScreen) {
-      const frame = await videoShare.captureFrame()
+    if (videoShare && sendScreen && videoShare.captureFrame && 
+        typeof videoShare.captureFrame === 'function') {
+      const frame = await videoShare.captureFrame();
       if (frame) {
-        await sendScreen(frame)
+        await sendScreen(frame);
       }
     }
   }
   
   const stopScreenShare = async () => {
-    if (videoShare) {
-      await videoShare.stopCapture()
+    if (videoShare && videoShare.stopCapture && typeof videoShare.stopCapture === 'function') {
+      await videoShare.stopCapture();
     }
   }
   
