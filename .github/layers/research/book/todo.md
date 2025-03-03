@@ -1,12 +1,22 @@
 # Book Research Module Implementation Plan
 
-This document outlines the step-by-step implementation plan for the Book Research Module with vector embedding capabilities.
+This document outlines the step-by-step implementation plan for the Book Research Module with vector embedding capabilities, with progress tracking.
 
 ## Phase 1: Foundation & Core Functionality
 
 ### Week 1-2: Project Setup and Basic Infrastructure
 
+#### Documentation Setup
+- [x] Create Product Requirements Document (PRD)
+- [x] Create Feature Requirements Document (FRD)
+- [x] Create Database Requirements Document (DRD) 
+- [x] Create Backend Requirements Document (BRD)
+- [x] Create UX Sitemap Document
+- [x] Create Frontend Architecture Document
+
 #### Backend Setup
+- [x] Define function declarations for book research (book.ts)
+- [x] Set up vector-aware functions in book research
 - [ ] Set up research API routes structure
 - [ ] Create database models for CategoryResearch, ExampleBook, ResearchFile, and ResearchConversation
 - [ ] Implement basic CRUD operations for all models
@@ -15,6 +25,7 @@ This document outlines the step-by-step implementation plan for the Book Researc
 - [ ] Design and implement versioned API responses
 
 #### Frontend Setup
+- [x] Create research sidebar navigation
 - [ ] Create UI component library for research module
 - [ ] Set up state management with Pinia stores
 - [ ] Implement API client for research endpoints
@@ -42,6 +53,7 @@ This document outlines the step-by-step implementation plan for the Book Researc
 ### Week 5-6: FireCrawl Integration and Book Management
 
 #### Backend Implementation
+- [x] Design FireCrawl integration architecture
 - [ ] Set up FireCrawl API connection and authentication
 - [ ] Implement book scraping endpoint (`POST /api/scrape`)
 - [ ] Create batch scraping job management
@@ -73,14 +85,16 @@ This document outlines the step-by-step implementation plan for the Book Researc
 
 ## Phase 3: Vector Embeddings and Search
 
-### Week 9-10: Embedding Generation Infrastructure
+### Week 9-10: Embedding Generation & Firestore Vector Integration
 
 #### Backend Implementation
-- [ ] Integrate with embeddings.ts utility
+- [x] Connect with embeddings.ts utility
+- [x] Set up vector-aware function declarations
 - [ ] Create embedding generation endpoint (`POST /api/embeddings`)
-- [ ] Implement bulk embedding generation for books
-- [ ] Set up embedding provider selection logic
-- [ ] Build embedding storage in database
+- [ ] Set up Firestore vector index creation
+- [ ] Implement embedding storage in Firestore
+- [ ] Create Cloud Functions to generate embeddings on document updates
+- [ ] Build batch embedding generation for books
 
 #### Frontend Implementation
 - [ ] Create embedding generation interface
@@ -92,11 +106,12 @@ This document outlines the step-by-step implementation plan for the Book Researc
 ### Week 11-12: Vector Search and Similarity
 
 #### Backend Implementation
-- [ ] Set up vector similarity search endpoint (`POST /api/vectors/search`)
-- [ ] Implement book similarity finder (`POST /api/books/similar/:id`)
-- [ ] Create vector clustering endpoint (`POST /api/vectors/cluster`)
-- [ ] Build filtering capabilities for vector searches
-- [ ] Implement semantic search across book collections
+- [x] Define vector similarity search functions
+- [ ] Implement nearest-neighbor search using Firestore vector search
+- [ ] Create book similarity finder with distance threshold
+- [ ] Set up pre-filtering for vector searches
+- [ ] Implement vector distance visualization
+- [ ] Build clustering based on vector similarities
 
 #### Frontend Implementation
 - [ ] Create semantic search interface
@@ -110,6 +125,7 @@ This document outlines the step-by-step implementation plan for the Book Researc
 ### Week 13-14: Perplexity AI Integration
 
 #### Backend Implementation
+- [x] Define deep research function in book.ts
 - [ ] Set up Perplexity API connection
 - [ ] Create deep research endpoint (`POST /api/research/deep`)
 - [ ] Implement research results storage
@@ -126,11 +142,11 @@ This document outlines the step-by-step implementation plan for the Book Researc
 ### Week 15-16: LLM Agent Integration
 
 #### Backend Implementation
-- [ ] Set up LLM agent for research assistance
-- [ ] Create function declarations for research capabilities
+- [x] Set up LLM agent function declarations for research capabilities
 - [ ] Implement context building with vector search
 - [ ] Build conversation routing for research questions
 - [ ] Set up vector-aware response generation
+- [ ] Integrate research functions with chat system
 
 #### Frontend Implementation
 - [ ] Create research assistant chat interface
@@ -145,7 +161,7 @@ This document outlines the step-by-step implementation plan for the Book Researc
 
 #### Backend Optimization
 - [ ] Implement caching strategy for frequent queries
-- [ ] Optimize vector search performance
+- [ ] Optimize vector search performance in Firestore
 - [ ] Set up batch processing for heavy operations
 - [ ] Implement pagination for large result sets
 - [ ] Create background jobs for long-running tasks
@@ -166,56 +182,84 @@ This document outlines the step-by-step implementation plan for the Book Researc
 
 ## Implementation Details
 
+### Firestore Vector Setup
+
+1. **Vector Index Creation**
+   - [ ] Create vector index for book description field
+   - [ ] Create vector index for book content field
+   - [ ] Create composite index for category filtering with vector search
+   - [ ] Set up index dimensions to match embedding models (1024 or 1536)
+
+2. **Embedding Storage Strategy**
+   - [ ] Store embeddings directly in book documents
+   - [ ] Use the `FieldValue.vector()` method for adding embeddings
+   - [ ] Create Cloud Function trigger for automatic embedding generation
+   - [ ] Implement versioning for embedding model changes
+
+3. **Vector Search Implementation**
+   - [ ] Implement `findNearest()` queries for semantic search
+   - [ ] Set up distance metrics (COSINE for non-normalized, DOT_PRODUCT for normalized)
+   - [ ] Configure distance thresholds for relevant results
+   - [ ] Create pre-filtering by category and book metadata
+
+4. **Performance Optimization**
+   - [ ] Implement pagination for vector search results
+   - [ ] Create caching for common vector queries
+   - [ ] Set appropriate limits for vector search (max 1000)
+   - [ ] Handle embedding dimensions efficiently (max 2048)
+
 ### Vector Embedding Strategy
 
 1. **Text Preprocessing**
-   - Normalize and clean text before generating embeddings
-   - Split long content into chunks of appropriate size
-   - Extract key sections for more targeted embeddings
+   - [ ] Normalize and clean text before generating embeddings
+   - [ ] Split long content into chunks for embedding
+   - [ ] Extract key sections for more targeted embeddings
 
 2. **Embedding Generation Workflow**
-   - Generate embeddings for book descriptions immediately upon creation
-   - Queue content embeddings for background processing
-   - Update embeddings when source content changes
-   - Store embedding provider and model information with vectors
+   - [ ] Generate embeddings for book descriptions immediately upon creation
+   - [ ] Queue content embeddings for background processing
+   - [ ] Update embeddings when source content changes
+   - [ ] Store embedding provider and model information with vectors
 
 3. **Provider Selection Logic**
-   - Use VertexAI as default provider when available
-   - Fall back to OpenAI if VertexAI is unavailable
-   - Allow user overrides for specific use cases
-   - Support for switching providers without regenerating all embeddings
+   - [x] Connect with embeddings.ts utility for multiple providers
+   - [x] Support multiple embedding providers (OpenAI, VertexAI, etc.)
+   - [ ] Implement provider fallback chain
+   - [ ] Create provider selection UI
 
-4. **Vector Search Optimization**
-   - Pre-compute common similarity metrics
-   - Use approximate nearest neighbor for large collections
-   - Implement hybrid search (keyword + vector) for better results
-   - Cache frequent similarity queries
+4. **Vector Search Features**
+   - [ ] Implement nearest-neighbor search
+   - [ ] Support for pre-filtering with category/tags
+   - [ ] Retrieve calculated vector distances
+   - [ ] Apply distance thresholds for quality results
 
 ### Integration Points
 
 1. **FireCrawl Integration**
-   - Connect through server-side API for security
-   - Implement rate limiting and retry logic
-   - Cache responses to minimize repeated calls
-   - Transform scraped data to match internal models
+   - [x] Define function declarations for book scraping
+   - [ ] Connect through server-side API for security
+   - [ ] Implement rate limiting and retry logic
+   - [ ] Cache responses to minimize repeated calls
+   - [ ] Transform scraped data to match internal models
 
 2. **Perplexity AI Integration**
-   - Use server-side proxy for API access
-   - Implement streaming responses where appropriate
-   - Cache common research queries
-   - Combine with vector search for enhanced results
+   - [x] Define function declarations for deep research
+   - [ ] Use server-side proxy for API access
+   - [ ] Implement streaming responses where appropriate
+   - [ ] Cache common research queries
+   - [ ] Combine with vector search for enhanced results
 
 3. **Embeddings Utility Integration**
-   - Seamless connection with embeddings.ts
-   - Error handling for provider failures
-   - Fallback chains for reliability
-   - Performance monitoring and logging
+   - [x] Connect with embeddings.ts for vector generation
+   - [ ] Implement error handling for provider failures
+   - [ ] Create fallback chains for reliability
+   - [ ] Set up performance monitoring and logging
 
 4. **LLM Agent Integration**
-   - Update function declarations for research capabilities
-   - Implement vector context retrieval
-   - Create specialized prompts for book research
-   - Build evaluation metrics for answer quality
+   - [x] Create vector-aware function declarations
+   - [ ] Implement vector context retrieval
+   - [ ] Create specialized prompts for book research
+   - [ ] Build evaluation metrics for answer quality
 
 ### Technical Dependencies
 
@@ -240,3 +284,11 @@ This document outlines the step-by-step implementation plan for the Book Researc
 3. Gradually migrate existing data to include embeddings
 4. Provide feature flags for enabling/disabling vector features
 5. Create fallback to traditional search when vectors unavailable
+
+### Next Steps (Immediate Priorities)
+
+1. Create Firestore database schema with vector embedding fields
+2. Set up Cloud Functions for automatic embedding generation
+3. Create vector indexes in Firestore for book description and content fields
+4. Implement basic vector search API endpoints
+5. Begin building frontend components for vector search interface

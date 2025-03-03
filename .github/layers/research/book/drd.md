@@ -11,30 +11,36 @@ The Book Research Module requires a robust database structure to support the sto
    - Central entity containing research project information
    - One-to-many relationship with ExampleBook, ResearchFile, and ResearchConversation
    - Many-to-many relationship with BookCategory
+   - Many-to-many relationship with User through ResearchCollaborator
 
-2. **ExampleBook**
+2. **ResearchCollaborator**
+   - Junction entity connecting Users to CategoryResearch
+   - Defines the role/permissions for each user
+   - Contains workspace context for the collaboration
+
+3. **ExampleBook**
    - Stores detailed book information
    - May relate to multiple CategoryResearch entities
    - Contains nested objects for BSR data, comments, likes/dislikes
    - Includes vector embeddings for content and metadata
 
-3. **ResearchFile**
+4. **ResearchFile**
    - Metadata for research-related files
    - Direct relationship to specific CategoryResearch
    - Includes file paths and metadata
    - Optional vector embeddings for file content
 
-4. **ResearchConversation**
+5. **ResearchConversation**
    - Stores conversation history related to research
    - Direct relationship to specific CategoryResearch
    - Contains array of messages with timestamps
 
-5. **BookCategory**
+6. **BookCategory**
    - Hierarchical category structure
    - Parent-child relationships (subcategories)
    - Used for organization and filtering
 
-6. **VectorEmbedding**
+7. **VectorEmbedding**
    - Stores vector embeddings for various entities
    - Links to source entity (book, file, etc.)
    - Contains embedding metadata and provider information
@@ -45,18 +51,37 @@ The Book Research Module requires a robust database structure to support the sto
 ```typescript
 {
   id: string               // Primary key, UUID
-  workspace_id: string     // Workspace identifier
-  owner_id: string         // User identifier
+  workspace_id: string     // Primary workspace identifier
+  owner_id: string         // Owner user identifier
   main_category: string    // Main category name
   sub_category: string     // Subcategory name
   sub_category_description?: string  // Optional description
   status: 'in_progress' | 'completed'  // Research status
-  example_books?: ExampleBook[]      // Associated books
+  is_public: boolean       // Whether this research is discoverable by other workspaces
+  example_book_ids?: string[]      // Associated books
   research_files?: ResearchFile[]    // Associated files
   research_conversations?: ResearchConversation[]  // Associated conversations
+  collaborators?: ResearchCollaborator[] // Associated collaborators
   created_at: Date         // Creation timestamp
   updated_at: Date         // Last update timestamp
   deleted_at?: Date        // Soft delete timestamp
+}
+```
+
+### ResearchCollaborator Schema
+```typescript
+{
+  id: string               // Primary key, UUID
+  research_id: string      // Reference to research project
+  user_id: string          // Reference to collaborator user
+  workspace_id: string     // Workspace context for this collaboration
+  role: 'owner' | 'editor' | 'viewer' // Permission level
+  profile_id: string       // Reference to user's profile in this workspace
+  invitation_status: 'pending' | 'accepted' | 'rejected' // For invites
+  invitation_email?: string // For inviting external users
+  created_at: Date         // Creation timestamp
+  updated_at: Date         // Last update timestamp
+  deleted_at?: Date        // Soft delete timestamp  
 }
 ```
 
@@ -219,6 +244,7 @@ The Book Research Module requires a robust database structure to support the sto
 - Role-based permissions for collaborative features
 - Encryption of sensitive data fields
 - Access logging for vector operations
+- Collaborator permission enforcement
 
 ### Scalability
 - Support for potentially large numbers of research projects

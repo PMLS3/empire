@@ -11,8 +11,10 @@ This project follows a modular architecture with two key concepts:
 ```
 empire/
 ├── layers/               # Shared functionality layers
+│   ├── ai/               # AI functionality layer
 │   ├── auth/             # Authentication layer
-│   ├── crm/              # CRM functionality layer  
+│   ├── crm/              # CRM functionality layer
+│   ├── research/         # Research functionality layer
 │   └── shared/           # Common UI components and utilities
 ├── workspaces/           # End-user applications
 │   ├── creator/          # Creator workspace
@@ -41,6 +43,26 @@ The CRM layer provides:
 - Sales pipeline functionality
 - Reporting and analytics
 - Integration with Auth layer for user context
+
+### Research Layer
+
+The Research layer enables:
+- Book research project management
+- Example book collection and analysis
+- Vector embedding-based semantic search
+- AI-powered deep research capabilities
+- File management for research documents
+- Integration with Firestore for vector search
+- Connection to external services (FireCrawl, Perplexity)
+
+### AI Layer
+
+The AI layer provides:
+- Embeddings generation across multiple providers
+- LLM integrations with function calling
+- Context-aware conversations
+- Specialized AI agents for different domains
+- Utility services for AI processing
 
 ### Shared Layer
 
@@ -73,6 +95,23 @@ Each workspace:
 - Workspace context is maintained during user sessions
 - User permissions are scoped to specific workspaces
 
+## Vector Database Architecture
+
+- Firestore used for document storage and vector search
+- Vector embeddings stored directly in documents using `FieldValue.vector()`
+- KNN vector indexes created for semantic search
+- Cloud Functions for embedding generation on document changes
+- Supported distance metrics: EUCLIDEAN, COSINE, DOT_PRODUCT
+- Pre-filtering via composite indexes for category-based search
+
+## LLM Function Integration
+
+- Function declarations for AI agent capabilities
+- Specialized handlers for domain-specific operations
+- System instructions for context-aware responses
+- Integration between research functionality and LLM agents
+- Vector-aware context retrieval for enhanced responses
+
 ## Server-Side Interactions
 
 - Server routes defined in each layer's `server/` directory
@@ -92,5 +131,8 @@ Each workspace:
 ## Dependencies
 
 - Nuxt.js 3.15+ for application framework
-- Firebase/Firebase Admin for authentication and database
+- Firebase/Firebase Admin for authentication, database, and vector search
 - TypeScript for type safety
+- LangChain for embeddings and LLM interactions
+- FireCrawl for book data scraping
+- Perplexity AI for deep research capabilities

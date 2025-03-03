@@ -8,23 +8,36 @@
   - Optional description and status fields
   - Auto-generation of research ID
   - Default status "in_progress"
+  - Association with current workspace and user
 
 ### Research Project Organization
 - **List Research Projects**
   - Filterable grid/list view of all research projects
   - Sort by category, date created, status
   - Search functionality
+  - Distinguish between owned and shared projects
 
 - **View Research Project Details**
   - Dashboard with project overview
   - Related books, files, and conversations
   - Progress tracking
+  - Collaborators list and management
 
-### Research Categories
-- **Category Management**
-  - Predefined book categories with descriptions
-  - Subcategory selection
-  - Custom category creation
+### Collaboration Features
+- **Invite Collaborators**
+  - Send invitations to users by email
+  - Set permission levels (owner, editor, viewer)
+  - Manage pending invitations
+  
+- **Manage Permissions**
+  - Change collaborator roles
+  - Remove collaborators
+  - Transfer ownership
+
+- **Collaboration Activity**
+  - Track changes by collaborators
+  - Activity feed for research projects
+  - Notifications for important updates
 
 ## Book Collection Features
 
@@ -164,6 +177,7 @@
   - Summary of research projects
   - Recent activity
   - Quick access to common functions
+  - Separate views for personal and shared projects
 
 ### Book Display
 - **Book Card View**
