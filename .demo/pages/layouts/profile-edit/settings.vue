@@ -355,7 +355,7 @@ const onSubmit = handleSubmit(
                   v-slot="{ field, handleChange, handleBlur }"
                   name="twoFactor.enabled"
                 >
-                  <BaseSwitchThin
+                  <FormSwitchThin
                     :model-value="field.value"
                     :disabled="isSubmitting"
                     label="Enabled"
@@ -397,7 +397,7 @@ const onSubmit = handleSubmit(
                   v-slot="{ field, handleChange, handleBlur }"
                   name="notifications.enabled"
                 >
-                  <BaseSwitchBall
+                  <FormSwitchBall
                     :model-value="field.value"
                     :disabled="isSubmitting"
                     label="Enabled"
@@ -413,7 +413,7 @@ const onSubmit = handleSubmit(
                   v-slot="{ field, handleChange, handleBlur }"
                   name="notifications.flushLowPriority"
                 >
-                  <BaseSwitchBall
+                  <FormSwitchBall
                     :model-value="field.value"
                     :disabled="isSubmitting"
                     label="Flush"
@@ -429,7 +429,7 @@ const onSubmit = handleSubmit(
                   v-slot="{ field, handleChange, handleBlur }"
                   name="notifications.marketing"
                 >
-                  <BaseSwitchBall
+                  <FormSwitchBall
                     :model-value="field.value"
                     :disabled="isSubmitting"
                     label="Marketing"
@@ -445,7 +445,7 @@ const onSubmit = handleSubmit(
                   v-slot="{ field, handleChange, handleBlur }"
                   name="notifications.partners"
                 >
-                  <BaseSwitchBall
+                  <FormSwitchBall
                     :model-value="field.value"
                     :disabled="isSubmitting"
                     label="Partners"

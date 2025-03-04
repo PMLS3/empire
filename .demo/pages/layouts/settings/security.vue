@@ -250,7 +250,7 @@ const password = ref(true)
             <div
               class="font-heading text-muted-600 dark:text-muted-400 hover:bg-muted-50 dark:hover:bg-muted-800 flex items-center gap-2 p-4 text-sm transition-colors duration-300"
             >
-              <BaseSwitchThin v-model="session" />
+              <FormSwitchThin v-model="session" />
               <div>
                 <BaseHeading
                   as="h3"
@@ -271,7 +271,7 @@ const password = ref(true)
             <div
               class="font-heading text-muted-600 dark:text-muted-400 hover:bg-muted-50 dark:hover:bg-muted-800 flex items-center gap-2 p-4 text-sm transition-colors duration-300"
             >
-              <BaseSwitchThin v-model="password" />
+              <FormSwitchThin v-model="password" />
               <div>
                 <BaseHeading
                   as="h3"

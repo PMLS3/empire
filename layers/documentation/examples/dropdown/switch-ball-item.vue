@@ -17,7 +17,7 @@
             color="primary"
           >
             <template #start>
-              <BaseSwitchBall
+              <FormSwitchBall
                 :checked="model.includes('value_1')"
                 value="demo-curved-1"
                 rounded="curved"
@@ -40,7 +40,7 @@
             color="primary"
           >
             <template #start>
-              <BaseSwitchBall
+              <FormSwitchBall
                 :checked="model.includes('value_2')"
                 value="demo-curved-2"
                 rounded="curved"
@@ -63,7 +63,7 @@
             color="primary"
           >
             <template #start>
-              <BaseSwitchBall
+              <FormSwitchBall
                 :checked="model.includes('value_3')"
                 value="demo-curved-3"
                 rounded="curved"

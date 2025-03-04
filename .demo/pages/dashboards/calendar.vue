@@ -673,7 +673,7 @@ const selectedEventFeatures = computed({
           </div>
 
           <div class="mt-4">
-            <BaseSwitchThin
+            <FormSwitchThin
               v-model="settings.hideWeekends"
               label="Hide weekends"
             />

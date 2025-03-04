@@ -82,7 +82,7 @@ const showStackTrace = ref(true)
         </div>
         <DevOnly>
           <div class="mt-6 flex items-center justify-center">
-            <BaseSwitchBall
+            <FormSwitchBall
               v-model="showStackTrace"
               color="danger"
               :label="`${showStackTrace ? 'Hide' : 'Show'} Stacktrace (dev)`"

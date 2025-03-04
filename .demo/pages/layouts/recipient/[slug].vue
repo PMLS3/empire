@@ -303,7 +303,7 @@ function statusColor(itemStatus: string) {
                 Notifications
               </BaseText>
               <div>
-                <BaseSwitchBall v-model="notifications" color="primary" />
+                <FormSwitchBall v-model="notifications" color="primary" />
               </div>
             </div>
           </BaseCard>

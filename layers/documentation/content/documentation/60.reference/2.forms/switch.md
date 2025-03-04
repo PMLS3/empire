@@ -1,8 +1,8 @@
 ---
-title: BaseSwitch
+title: FormSwitch
 components: 
-  - BaseSwitchThin
-  - BaseSwitchBall
+  - FormSwitchThin
+  - FormSwitchBall
 description: A switch is a binary input that can be either on or off. It is used to toggle between two states. Check out the thin and the ball versions.
 icon:
   src: /img/illustrations/components/switch-thin-icon.svg
@@ -27,7 +27,7 @@ Switches can have a sublabel. use the `sublabel` prop to set the sublabel text a
 ::
 
 
-:doc-component-meta{name="BaseSwitchThin"}
+:doc-component-meta{name="FormSwitchThin"}
 
 
 ::doc-component-demo
@@ -47,4 +47,4 @@ Switches can have a sublabel. use the `sublabel` prop to set the sublabel text a
 ::
 
 
-:doc-component-meta{name="BaseSwitchBall"}
+:doc-component-meta{name="FormSwitchBall"}

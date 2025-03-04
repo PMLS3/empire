@@ -121,7 +121,7 @@ function save() {
             Anyone with the link can view this {{ item.type }}
           </p>
         </div>
-        <BaseSwitch v-model="isPublic" />
+        <FormSwitch v-model="isPublic" />
       </div>
 
       <!-- Workspace Access -->
@@ -134,7 +134,7 @@ function save() {
             All members of {{ currentWorkspace.name }} can access
           </p>
         </div>
-        <BaseSwitch v-model="isWorkspaceShared" />
+        <FormSwitch v-model="isWorkspaceShared" />
       </div>
 
       <!-- User Access -->

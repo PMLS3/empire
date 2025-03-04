@@ -547,7 +547,7 @@ const itemSubtotal = computed(() =>
                 Attach PDF in mail
               </BaseText>
               <div>
-                <BaseSwitchBall v-model="pdfAttachment" color="primary" />
+                <FormSwitchBall v-model="pdfAttachment" color="primary" />
               </div>
             </div>
           </BaseCard>

@@ -78,7 +78,7 @@
   const inputRef = ref<HTMLInputElement>()
   const id = useNinjaId(() => props.id)
 
-  const color = useNuiDefaultProperty(props, "BaseSwitchThin", "color")
+  const color = useNuiDefaultProperty(props, "FormSwitchThin", "color")
 
   const colors = {
     primary: "nui-switch-thin-primary",

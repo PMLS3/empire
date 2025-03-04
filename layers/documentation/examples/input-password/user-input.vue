@@ -26,7 +26,7 @@
     </div>
 
     <div class="mt-2">
-      <BaseSwitchThin
+      <FormSwitchThin
         v-model="useUserInputs"
         label="Check other inputs"
       />

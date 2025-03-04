@@ -2,7 +2,7 @@ import { FunctionGroup } from '../types';
 
 
 // Add research book functions
-const bookResearchFunctions: FunctionGroup = {
+export const bookResearchFunctions: FunctionGroup = {
     declarations: [
       {
         name: 'scrapeBookFromAmazon',

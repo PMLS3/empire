@@ -1,6 +1,6 @@
 <template>
   <div class="grid gap-6 md:max-w-lg md:grid-cols-2">
-    <BaseSwitchThin
+    <FormSwitchThin
       v-model="value"
       label="Primary"
       sublabel="This is a primary switch"

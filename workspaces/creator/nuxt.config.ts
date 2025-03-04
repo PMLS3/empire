@@ -37,6 +37,7 @@ export default defineNuxtConfig({
     '../../layers/layout-iconnav',
     '../../layers/shared',
     '../../layers/chat',
+    '../../layers/research',
 
   ],
   // nuxt behavior configuration

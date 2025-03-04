@@ -1,30 +1,30 @@
 <template>
   <BaseFocusLoop class="grid grid-cols-2 gap-6 md:max-w-lg md:grid-cols-4">
-    <BaseSwitchThin
+    <FormSwitchThin
       v-model="values.primary"
       label="Primary"
       color="primary"
     />
 
-    <BaseSwitchThin
+    <FormSwitchThin
       v-model="values.info"
       label="Info"
       color="info"
     />
 
-    <BaseSwitchThin
+    <FormSwitchThin
       v-model="values.success"
       label="Success"
       color="success"
     />
 
-    <BaseSwitchThin
+    <FormSwitchThin
       v-model="values.warning"
       label="Warning"
       color="warning"
     />
 
-    <BaseSwitchThin
+    <FormSwitchThin
       v-model="values.danger"
       label="Danger"
       color="danger"

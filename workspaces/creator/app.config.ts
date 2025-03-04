@@ -86,7 +86,7 @@ export default defineAppConfig({
             title: 'Research',
             icon: { name: 'ph:book-open-duotone', class: 'w-5 h-5' },
             subsidebar: { component: 'SubsidebarResearch' },
-            to: '/research',
+            activePath: '/research',
           },
           {
             title: 'File Manager',

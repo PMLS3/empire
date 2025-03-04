@@ -1,87 +1,88 @@
-import { Firestore } from '@google-cloud/firestore';
-import { ResearchModel } from '../models/research.model';
-import { getUserSession } from '~/server/utils/session';
+import { defineEventHandler, readBody, getQuery, createError } from 'h3';
+import { addCollaborator, removeCollaborator, getCollaborators } from '../models/research.model';
+import { getUserSession } from '../../../ai/server/utils/session';
+import { useFirebaseServer } from '../../../auth/server/firebase/init';
 
 export default defineEventHandler(async (event) => {
   try {
-    const firestore = new Firestore();
-    const researchModel = new ResearchModel(firestore);
+    // Get user session
     const session = await getUserSession(event);
     
-    if (!session || !session.user || !session.workspace) {
+    if (!session || !session.user || !session.currentWorkspace) {
       throw createError({
         statusCode: 401,
         statusMessage: 'Unauthorized'
       });
     }
+
+    // Initialize Firestore
+    const { firestore } = useFirebaseServer(session.user?.token?.idToken as string);
     
-    const { userId, workspaceId } = session;
+    // Extract user details
+    const userId = session.user.id;
+    const workspaceId = session.currentWorkspace.id || '';
     const method = event.method;
     const path = event.path;
-    
-    // Handle collaborators endpoints
-    if (method === 'GET' && path.match(/^\/api\/research\/\w+\/collaborators$/)) {
-      // Get collaborators for a research project
-      const researchId = path.split('/')[3];
-      const collaborators = await researchModel.getCollaborators(researchId, userId, workspaceId);
-      return collaborators;
-      
-    } else if (method === 'POST' && path.match(/^\/api\/research\/\w+\/collaborators$/)) {
-      // Invite a collaborator
-      const researchId = path.split('/')[3];
+
+    // Handle the different endpoints
+    if (method === 'POST' && path === '/api/collaborators') {
+      // Add collaborator
       const body = await readBody(event);
       
-      if (!body.email || !body.role) {
+      if (!body.research_id || !body.email || !body.role) {
         throw createError({
           statusCode: 400,
-          statusMessage: 'Email and role are required'
+          statusMessage: 'Missing required fields'
         });
       }
       
-      // Role validation
+      // Validate role
       if (!['editor', 'viewer'].includes(body.role)) {
         throw createError({
           statusCode: 400,
-          statusMessage: 'Invalid role. Must be editor or viewer'
+          statusMessage: 'Invalid role. Must be "editor" or "viewer"'
         });
       }
       
-      const collaborator = await researchModel.inviteCollaborator(
-        researchId,
+      const result = await addCollaborator(
+        event,
+        body.research_id,
         body.email,
-        body.role,
-        userId,
-        workspaceId
+        body.role
       );
       
-      return collaborator;
+      return { id: result };
+    } else if (method === 'DELETE' && path.startsWith('/api/collaborators/')) {
+      // Remove collaborator
+      const collaboratorId = path.split('/')[3];
+      await removeCollaborator(event, collaboratorId);
       
-    } else if (method === 'PUT' && path.match(/^\/api\/research\/\w+\/collaborators\/\w+$/)) {
-      // Update collaborator role (not implemented yet)
-      throw createError({
-        statusCode: 501,
-        statusMessage: 'Not implemented yet'
-      });
+      return { success: true };
+    } else if (method === 'GET' && path === '/api/collaborators') {
+      // Get collaborators for a research project
+      const query = getQuery(event);
       
-    } else if (method === 'DELETE' && path.match(/^\/api\/research\/\w+\/collaborators\/\w+$/)) {
-      // Remove collaborator (not implemented yet)
-      throw createError({
-        statusCode: 501,
-        statusMessage: 'Not implemented yet'
-      });
+      if (!query.research_id) {
+        throw createError({
+          statusCode: 400,
+          statusMessage: 'Missing research_id parameter'
+        });
+      }
       
+      const result = await getCollaborators(event, query.research_id as string);
+      return { collaborators: result };
     } else {
       throw createError({
         statusCode: 404,
-        statusMessage: 'Not found'
+        statusMessage: 'Not Found'
       });
     }
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Collaborators API error:', error);
     
     throw createError({
-      statusCode: error.statusCode || 500,
-      statusMessage: error.statusMessage || error.message || 'Internal Server Error'
+      statusCode: error instanceof Error && 'statusCode' in error ? (error as any).statusCode : 500,
+      statusMessage: error instanceof Error ? error.message : 'Internal Server Error'
     });
   }
 });

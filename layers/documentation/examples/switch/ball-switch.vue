@@ -1,30 +1,30 @@
 <template>
   <BaseFocusLoop class="grid grid-cols-2 gap-6 md:max-w-lg md:grid-cols-4">
-    <BaseSwitchBall
+    <FormSwitchBall
       v-model="values.primary"
       label="Primary"
       color="primary"
     />
 
-    <BaseSwitchBall
+    <FormSwitchBall
       v-model="values.info"
       label="Info"
       color="info"
     />
 
-    <BaseSwitchBall
+    <FormSwitchBall
       v-model="values.success"
       label="Success"
       color="success"
     />
 
-    <BaseSwitchBall
+    <FormSwitchBall
       v-model="values.warning"
       label="Warning"
       color="warning"
     />
 
-    <BaseSwitchBall
+    <FormSwitchBall
       v-model="values.danger"
       label="Danger"
       color="danger"

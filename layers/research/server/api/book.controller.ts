@@ -1,21 +1,23 @@
-import { Firestore } from '@google-cloud/firestore';
-import { BookModel } from '../models/book.model';
-import { getUserSession } from '~/server/utils/session';
+import { getBookById, createBook, updateBook, deleteBook, searchBooksByVector, generateBookEmbeddings } from '../models/book.model';
+import { getUserSession } from '../../../ai/server/utils/session';
+import { useFirebaseServer } from '../../../auth/server/firebase/init';
+import { defineEventHandler, readBody, getQuery, createError } from 'h3';
 
 export default defineEventHandler(async (event) => {
   try {
-    const firestore = new Firestore();
-    const bookModel = new BookModel(firestore);
     const session = await getUserSession(event);
     
-    if (!session || !session.user || !session.workspace) {
+    if (!session || !session.user || !session.currentWorkspace) {
       throw createError({
         statusCode: 401,
         statusMessage: 'Unauthorized'
       });
     }
+
+    const { firestore } = useFirebaseServer(session.user?.token?.idToken as string);
     
-    const { userId, workspaceId } = session;
+    const userId = session.user.id;
+    const workspaceId = session.currentWorkspace.id || '';
     const method = event.method;
     const path = event.path;
     
@@ -23,11 +25,9 @@ export default defineEventHandler(async (event) => {
     if (method === 'POST' && path === '/api/books') {
       // Create new book
       const body = await readBody(event);
-      const result = await bookModel.createExampleBook(
-        body.book,
-        body.research_id,
-        userId,
-        workspaceId
+      const result = await createBook(
+        event,
+        body.book
       );
       return result;
     } else if (method === 'GET' && path.startsWith('/api/books/') && path.includes('/similar')) {
@@ -36,63 +36,73 @@ export default defineEventHandler(async (event) => {
       const query = getQuery(event);
       const field = query.field as string || 'description';
       const limit = parseInt(query.limit as string) || 5;
-      const minSimilarity = parseFloat(query.min_similarity as string) || 0.7;
       
-      const result = await bookModel.findSimilarBooks(
-        bookId,
-        field,
-        limit,
-        minSimilarity,
-        workspaceId
+      // Updated to match the function signature
+      const result = await searchBooksByVector(
+        event,
+        field, // Using the field as the query string
+        limit
       );
       return result;
     } else if (method === 'POST' && path === '/api/vectors/search') {
       // Semantic search
       const body = await readBody(event);
-      const result = await bookModel.semanticSearchBooks(
+      
+      // Updated to match the function signature
+      const result = await searchBooksByVector(
+        event,
         body.query,
-        body.category,
-        body.limit || 10,
-        body.research_id,
-        workspaceId
+        body.limit || 10
       );
       return result;
     } else if (method === 'POST' && path === '/api/vectors/cluster') {
       // Cluster books
       const body = await readBody(event);
-      const result = await bookModel.clusterBooks(
-        body.research_id,
-        body.field || 'description',
-        body.num_clusters || 3,
-        workspaceId
-      );
-      return result;
+      
+      // This is not supported directly by our searchBooksByVector function
+      // We need to handle this differently or implement a new function
+      throw createError({
+        statusCode: 501,
+        statusMessage: 'Clustering not implemented yet'
+      });
     } else if (method === 'POST' && path === '/api/embeddings') {
       // Generate embeddings
       const body = await readBody(event);
-      const result = await bookModel.generateBookEmbeddings(
+      const result = await generateBookEmbeddings(
+        event,
         body.book_id,
         body.fields || ['description'],
         body.provider,
-        body.model,
-        workspaceId
+        body.model
       );
       return result;
     } else if (method === 'POST' && path === '/api/vectors/bulk-generate') {
-      // Bulk generate embeddings
+      // Bulk generate embeddings - this isn't directly supported by our current functions
+      // We would need to implement a new function or iterate through book_ids
       const body = await readBody(event);
-      const result = await bookModel.batchGenerateEmbeddings(
-        body.book_ids,
-        body.fields || ['description'],
-        body.provider,
-        body.model,
-        workspaceId
-      );
-      return result;
+      const results = [];
+      
+      // Process each book ID individually
+      for (const bookId of body.book_ids) {
+        try {
+          const result = await generateBookEmbeddings(
+            event,
+            bookId,
+            body.fields || ['description'],
+            body.provider,
+            body.model
+          );
+          results.push({ bookId, success: true, result });
+        } catch (err) {
+          results.push({ bookId, success: false, error: err instanceof Error ? err.message : 'Unknown error' });
+        }
+      }
+      
+      return { results };
     } else if (method === 'GET' && path.startsWith('/api/books/')) {
       // Get book by ID
       const bookId = path.split('/')[3];
-      const result = await bookModel.getExampleBookById(bookId, workspaceId);
+      const result = await getBookById(event, bookId);
       
       if (!result) {
         throw createError({
@@ -106,12 +116,12 @@ export default defineEventHandler(async (event) => {
       // Update book
       const bookId = path.split('/')[3];
       const body = await readBody(event);
-      const result = await bookModel.updateExampleBook(bookId, body, workspaceId);
+      const result = await updateBook(event, bookId, body);
       return result;
     } else if (method === 'DELETE' && path.startsWith('/api/books/')) {
       // Delete book
       const bookId = path.split('/')[3];
-      await bookModel.deleteExampleBook(bookId, workspaceId);
+      await deleteBook(event, bookId);
       return { success: true };
     } else {
       throw createError({
@@ -119,12 +129,12 @@ export default defineEventHandler(async (event) => {
         statusMessage: 'Not Found'
       });
     }
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Book API error:', error);
     
     throw createError({
-      statusCode: error.statusCode || 500,
-      statusMessage: error.statusMessage || error.message || 'Internal Server Error'
+      statusCode: error instanceof Error && 'statusCode' in error ? (error as any).statusCode : 500,
+      statusMessage: error instanceof Error ? error.message : 'Internal Server Error'
     });
   }
 });

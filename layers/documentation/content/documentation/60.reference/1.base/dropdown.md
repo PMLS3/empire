@@ -119,7 +119,7 @@ Dropdown items can be enhanced into a radio button wrapping them with a using a 
 title: Switch item
 demo: '#examples/dropdown/switch-item.vue'
 ---
-Dropdown items can be enhanced into a switch wrapping them with a using a `BaseCheckboxHeadless` component as well the `start` item slot prop to add an inner `BaseSwitchThin`.
+Dropdown items can be enhanced into a switch wrapping them with a using a `BaseCheckboxHeadless` component as well the `start` item slot prop to add an inner `FormSwitchThin`.
 ::
 
 ::doc-component-demo
@@ -127,7 +127,7 @@ Dropdown items can be enhanced into a switch wrapping them with a using a `BaseC
 title: Switch ball item
 demo: '#examples/dropdown/switch-ball-item.vue'
 ---
-Dropdown items can be enhanced into a switch wrapping them with a using a `BaseCheckboxHeadless` component as well the `start` item slot prop to add an inner `BaseSwitchBall`.
+Dropdown items can be enhanced into a switch wrapping them with a using a `BaseCheckboxHeadless` component as well the `start` item slot prop to add an inner `FormSwitchBall`.
 ::
 
 ::doc-component-demo

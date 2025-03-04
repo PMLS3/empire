@@ -17,7 +17,7 @@
             color="primary"
           >
             <template #start>
-              <BaseSwitchThin
+              <FormSwitchThin
                 :checked="model.includes('value_1')"
                 value="demo-lg-1"
                 rounded="lg"
@@ -40,7 +40,7 @@
             color="primary"
           >
             <template #start>
-              <BaseSwitchThin
+              <FormSwitchThin
                 :checked="model.includes('value_2')"
                 value="demo-lg-2"
                 rounded="lg"
@@ -63,7 +63,7 @@
             color="primary"
           >
             <template #start>
-              <BaseSwitchThin
+              <FormSwitchThin
                 :checked="model.includes('value_3')"
                 value="demo-lg-3"
                 rounded="lg"

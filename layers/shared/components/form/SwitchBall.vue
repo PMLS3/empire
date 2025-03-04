@@ -83,7 +83,7 @@
   const inputRef = ref<HTMLInputElement>()
   const id = useNinjaId(() => props.id)
 
-  const color = useNuiDefaultProperty(props, "BaseSwitchBall", "color")
+  const color = useNuiDefaultProperty(props, "FormSwitchBall", "color")
 
   const colors = {
     primary: "nui-switch-ball-primary",

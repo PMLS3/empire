@@ -357,7 +357,7 @@ const { data, pending, error, refresh } = await useFetch('/api/profile')
                   Notifications
                 </h4>
                 <div class="ms-auto">
-                  <BaseSwitchBall v-model="data.notifications" />
+                  <FormSwitchBall v-model="data.notifications" />
                 </div>
               </div>
               <div>

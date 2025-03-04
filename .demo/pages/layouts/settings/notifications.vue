@@ -59,7 +59,7 @@ const offers = ref(true)
             <div
               class="font-heading text-muted-600 dark:text-muted-400 hover:bg-muted-50 dark:hover:bg-muted-800 flex items-center gap-2 p-4 text-sm transition-colors duration-300"
             >
-              <BaseSwitchThin v-model="incoming" />
+              <FormSwitchThin v-model="incoming" />
               <div>
                 <BaseHeading
                   as="h3"
@@ -80,7 +80,7 @@ const offers = ref(true)
             <div
               class="font-heading text-muted-600 dark:text-muted-400 hover:bg-muted-50 dark:hover:bg-muted-800 flex items-center gap-2 p-4 text-sm transition-colors duration-300"
             >
-              <BaseSwitchThin v-model="outgoing" />
+              <FormSwitchThin v-model="outgoing" />
               <div>
                 <BaseHeading
                   as="h3"
@@ -101,7 +101,7 @@ const offers = ref(true)
             <div
               class="font-heading text-muted-600 dark:text-muted-400 hover:bg-muted-50 dark:hover:bg-muted-800 flex items-center gap-2 p-4 text-sm transition-colors duration-300"
             >
-              <BaseSwitchThin v-model="failed" />
+              <FormSwitchThin v-model="failed" />
               <div>
                 <BaseHeading
                   as="h3"
@@ -122,7 +122,7 @@ const offers = ref(true)
             <div
               class="font-heading text-muted-600 dark:text-muted-400 hover:bg-muted-50 dark:hover:bg-muted-800 flex items-center gap-2 p-4 text-sm transition-colors duration-300"
             >
-              <BaseSwitchThin v-model="uncashed" />
+              <FormSwitchThin v-model="uncashed" />
               <div>
                 <BaseHeading
                   as="h3"
@@ -143,7 +143,7 @@ const offers = ref(true)
             <div
               class="font-heading text-muted-600 dark:text-muted-400 hover:bg-muted-50 dark:hover:bg-muted-800 flex items-center gap-2 p-4 text-sm transition-colors duration-300"
             >
-              <BaseSwitchThin v-model="payments" />
+              <FormSwitchThin v-model="payments" />
               <div>
                 <BaseHeading
                   as="h3"
@@ -198,7 +198,7 @@ const offers = ref(true)
             <div
               class="font-heading text-muted-600 dark:text-muted-400 hover:bg-muted-50 dark:hover:bg-muted-800 flex items-center gap-2 p-4 text-sm transition-colors duration-300"
             >
-              <BaseSwitchThin v-model="low" />
+              <FormSwitchThin v-model="low" />
               <div>
                 <BaseHeading
                   as="h3"
@@ -252,7 +252,7 @@ const offers = ref(true)
             <div
               class="font-heading text-muted-600 dark:text-muted-400 hover:bg-muted-50 dark:hover:bg-muted-800 flex items-center gap-2 p-4 text-sm transition-colors duration-300"
             >
-              <BaseSwitchThin v-model="features" />
+              <FormSwitchThin v-model="features" />
               <div>
                 <BaseHeading
                   as="h3"
@@ -273,7 +273,7 @@ const offers = ref(true)
             <div
               class="font-heading text-muted-600 dark:text-muted-400 hover:bg-muted-50 dark:hover:bg-muted-800 flex items-center gap-2 p-4 text-sm transition-colors duration-300"
             >
-              <BaseSwitchThin v-model="offers" />
+              <FormSwitchThin v-model="offers" />
               <div>
                 <BaseHeading
                   as="h3"
