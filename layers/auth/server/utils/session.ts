@@ -1,7 +1,9 @@
 import { H3Event } from 'h3'
 import type { Profile, Workspace, WorkspaceRole } from '../../types/auth'
 import type { Timestamp } from 'firebase/firestore'
-
+import { VertexAIEmbeddings } from "@langchain/google-vertexai";
+import { readFileSync } from 'fs';
+import { join } from 'path';
 interface PublicUser {
   id: string
   email: string
@@ -14,6 +16,20 @@ interface WorkspaceWithRole extends Workspace {
   created_at: Timestamp
   updated_at: Timestamp
   deleted_at: Timestamp | null
+}
+
+interface GoogleCredentials {
+  type: string;
+  project_id: string;
+  private_key_id: string;
+  private_key: string;
+  client_email: string;
+  client_id: string;
+  auth_uri: string;
+  token_uri: string;
+  auth_provider_x509_cert_url: string;
+  client_x509_cert_url: string;
+  universe_domain: string;
 }
 
 export interface UserSession {
@@ -74,4 +90,26 @@ export async function clearUserSession(event: H3Event) {
   console.log('[Session] Clearing user session')
   await deleteCookie(event, SESSION_NAME)
   console.log('[Session] User session cleared')
+}
+
+export async function createEmbeddings(data: any, col_vec: any) {
+  const credentialsPath = join(process.cwd(), 'google-credentials.json');
+  
+  const credentials = JSON.parse(readFileSync(credentialsPath, 'utf-8')) as GoogleCredentials;
+  
+
+  const embeddings = new VertexAIEmbeddings(
+    {
+      model:  'textembedding-gecko@latest',
+      ...credentials
+    }
+  )
+  console.log('!!!!!!!!!!!!!!!!!!!!')
+  console.log('Data', data)
+  console.log('Col vec', col_vec)
+  const text = col_vec.map((key: string) => data[key]).join(' ');
+  console.log('[Embeddings] Embedding text:', text);
+  const vector = await embeddings.embedQuery(text);
+  
+  return vector
 }

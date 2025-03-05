@@ -1,14 +1,25 @@
 import { ref, computed } from 'vue';
 import type { CategoryResearch } from '../types/research';
+import { useAuth } from '../../auth/composables/auth';
+import { useToaster } from '../../shared/composables/toaster';
 
 export const useResearch = () => {
   const { isAuthenticated, getCurrentWorkspaceId } = useAuth();
   const toaster = useToaster();
   
-  const researchProjects = ref<CategoryResearch[]>([]);
-  const currentResearch = ref<CategoryResearch | null>(null);
+  const researchProjects = useState<CategoryResearch[]>('researchProjects', ()=>[]);
+  const currentResearch = useState<CategoryResearch | null>('currentResearch', ()=> null);
+  const currentResearchTeam = useState<any[]>('currentResearchTeam', ()=> []);
+  const currentResearchTasks = useState<any[]>('currentResearchTasks', ()=> []);
+  const currentResearchNotes = useState<any[]>('currentResearchNotes', ()=> []);
+  const currentResearchFiles = useState<any[]>('currentResearchFiles', ()=> []);
+  const currentResearchLinks = useState<any[]>('currentResearchLinks', ()=> []);
+  const currentResearchBooks = useState<any[]>('currentResearchBooks', ()=> []);
+
+
   const loading = ref(false);
   const error = ref<string | null>(null);
+  const research_vec = ref(['category', 'status', 'scope']);
   
   // Filters
   const filters = ref({
@@ -41,9 +52,20 @@ export const useResearch = () => {
       if (filters.value.status) queryParams.append('status', filters.value.status);
       if (filters.value.scope !== 'all') queryParams.append('scope', filters.value.scope);
       
-      const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
-      const response = await $fetch(`/api/research${queryString}`);
-      researchProjects.value = response as CategoryResearch[];
+      const response: any = await $fetch(`/api/data/read`, {
+        method: 'POST',
+        body: {
+          collection: 'research_projects',
+          readType: 'query',
+          filters: filters.value,
+        },
+      });
+      console.log('response', response);
+      if (response.status === 404) {
+        researchProjects.value = [];
+      }else{
+      researchProjects.value = response.data as CategoryResearch[];
+      }
     } catch (err) {
       console.error('Error fetching research projects:', err);
       error.value = err.message || 'Failed to load research projects';
@@ -67,7 +89,15 @@ export const useResearch = () => {
     error.value = null;
     
     try {
-      const response = await $fetch(`/api/research/${id}`);
+      const response = await $fetch(`/api/data/read`,{
+        method: 'POST',
+        body: {
+          collection: 'research_projects',
+          readType: 'id',
+          id: id,
+         
+        },
+      });
       currentResearch.value = response as CategoryResearch;
       return currentResearch.value;
     } catch (err) {
@@ -85,6 +115,41 @@ export const useResearch = () => {
       loading.value = false;
     }
   };
+
+  const getResearchTeam = async (id: string) => {
+    if (!isAuthenticated.value || !id) return null;
+
+    loading.value = true;
+    error.value = null;
+
+    try {
+      const response = await $fetch(`/api/data/read`,{
+        method: 'POST',
+        body: {
+          collection: 'research_projects',
+          readType: 'id',
+          id: id,
+        },
+      });
+      currentResearchTeam.value = response as any[];
+      return currentResearchTeam.value;
+    }
+    catch (err) {
+      console.error(`Error fetching research project ${id}:`, err);
+      error.value = err.message || 'Failed to load research project';
+      toaster.show({
+        title: 'Error',
+        message: error.value,
+        color: 'danger',
+        icon: 'ph:warning-circle-duotone',
+        closable: true,
+      });
+      return null;
+    }
+    finally {
+      loading.value = false;
+    }
+  };
   
   // Create a new research project
   const createResearch = async (data: Partial<CategoryResearch>) => {
@@ -92,11 +157,10 @@ export const useResearch = () => {
     
     loading.value = true;
     error.value = null;
-    
     try {
-      const response = await $fetch('/api/research', {
+      const response = await $fetch('/api/data/write', {
         method: 'POST',
-        body: data,
+        body: {collection: 'research_projects', ...data,col_vec:research_vec.value},
       });
       
       toaster.show({
@@ -106,6 +170,8 @@ export const useResearch = () => {
         icon: 'ph:check-circle-duotone',
         closable: true,
       });
+
+      console.log('response', response);
       
       return response as CategoryResearch;
     } catch (err) {
@@ -132,9 +198,9 @@ export const useResearch = () => {
     error.value = null;
     
     try {
-      const response = await $fetch(`/api/research/${id}`, {
-        method: 'PUT',
-        body: data,
+      const response = await $fetch(`/api/data/update`, {
+        method: 'POST',
+        body: {id: id, ...data, collection: 'research_projects'}
       });
       
       // Update current research if it's the one being edited
@@ -175,8 +241,9 @@ export const useResearch = () => {
     error.value = null;
     
     try {
-      await $fetch(`/api/research/${id}`, {
-        method: 'DELETE',
+      await $fetch(`/api/data/delete`, {
+        method: 'POST',
+        body: { id, collection: 'research_projects' },
       });
       
       // Remove from list if it's in there
@@ -249,6 +316,44 @@ export const useResearch = () => {
       loading.value = false;
     }
   };
+
+  // Search research projects by text
+  const searchResearch = async (searchText: string) => {
+    if (!isAuthenticated.value) return;
+
+    loading.value = true;
+    error.value = null;
+
+    try {
+      const response: any = await $fetch(`/api/data/read`, {
+        method: 'POST',
+        body: {
+          collection: 'research_projects',
+          readType: 'vector',
+          searchText: searchText,
+          col_vec: research_vec.value,
+        },
+      });
+
+      if (response.data) {
+        researchProjects.value = [response.data]; // Display the most similar document
+      } else {
+        researchProjects.value = []; // No similar documents found
+      }
+    } catch (err) {
+      console.error('Error searching research projects:', err);
+      error.value = err.message || 'Failed to search research projects';
+      toaster.show({
+        title: 'Error',
+        message: error.value,
+        color: 'danger',
+        icon: 'ph:warning-circle-duotone',
+        closable: true,
+      });
+    } finally {
+      loading.value = false;
+    }
+  };
   
   // Watch for authentication state changes to fetch projects when logged in
   watch(
@@ -286,5 +391,6 @@ export const useResearch = () => {
     updateResearch,
     deleteResearch,
     inviteCollaborator,
+    searchResearch,
   };
 };

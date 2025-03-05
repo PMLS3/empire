@@ -4,6 +4,10 @@ import { useFirebaseServer } from '../../firebase/init'
 import { collection, query as firestoreQuery, where, getDocs, doc, setDoc, serverTimestamp } from 'firebase/firestore'
 import { v4 as uuidv4 } from 'uuid'
 import { createError, readBody } from 'h3'
+import { createEmbeddings} from '../../utils/session'
+import {
+  FieldValue,
+} from "@google-cloud/firestore";
 
 export default defineEventHandler(async (event) => {
   try {
@@ -23,12 +27,20 @@ export default defineEventHandler(async (event) => {
     const workspaceId = session.currentWorkspace?.id
     const data = body as any
     const collection = body.collection
+    const col_vec = body.col_vec
 
     if (!workspaceId || !data || !collection) {
       throw createError({
         statusCode: 400,
         message: 'Missing required parameters'
       })
+    }
+
+    if (col_vec) {
+      console.log('Col vec', col_vec)
+    const embeddings = await createEmbeddings(data, col_vec)
+    console.log('Embeddings', embeddings)
+   if (embeddings) data['vector'] = embeddings
     }
 
     console.log(`[Write] Creating ${collection} in workspace ${workspaceId}`, { data })
@@ -71,4 +83,4 @@ export default defineEventHandler(async (event) => {
       message: error.message || 'Failed to fetch research'
     })
   }
-}) 
+})

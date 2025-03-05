@@ -4,6 +4,23 @@ import { useFirebaseServer } from '../../firebase/init'
 import { collection as firestoreCollection, query as firestoreQuery, where, getDocs, doc, getDoc, serverTimestamp } from 'firebase/firestore'
 import { v4 as uuidv4 } from 'uuid'
 import { createError, readBody } from 'h3'
+import { createEmbeddings } from '../../utils/session'
+
+// Function to calculate cosine similarity between two vectors
+function cosineSimilarity(vecA: number[], vecB: number[]): number {
+  let dotProduct = 0;
+  let magnitudeA = 0;
+  let magnitudeB = 0;
+  for (let i = 0; i < vecA.length; i++) {
+    dotProduct += vecA[i] * vecB[i];
+    magnitudeA += vecA[i] * vecA[i];
+    magnitudeB += vecB[i] * vecB[i];
+  }
+  magnitudeA = Math.sqrt(magnitudeA);
+  magnitudeB = Math.sqrt(magnitudeB);
+  if (magnitudeA === 0 || magnitudeB === 0) return 0;
+  return dotProduct / (magnitudeA * magnitudeB);
+}
 
 export default defineEventHandler(async (event) => {
   try {
@@ -45,7 +62,7 @@ export default defineEventHandler(async (event) => {
     // Get query parameters
     const body = await readBody(event);
     console.log('[Read] Request body:', JSON.stringify(body, null, 2));
-    
+     
     const workspaceId = session.currentWorkspace?.id || body.workspace_id;
     const readType = body.readType as 'id' | 'query' | 'vector';
     const collectionName = body.collection; // Rename to avoid conflict with Firebase collection function
@@ -112,18 +129,65 @@ export default defineEventHandler(async (event) => {
         console.log(`[Read] Retrieved document with ID ${id}`);
       }
     } else if (readType === 'vector') {
-      // Vector search not implemented yet
-      const newDataRef = doc(firestore, collectionName, id);
-      let res = await getDoc(newDataRef);
- 
-      data = {
-        id: id,
-        ...res.data()
-      };
-      console.log(`[Read] Vector search - retrieved document with ID ${id}`);
+      // Vector search implementation
+      const searchText = body.searchText;
+      const col_vec = body.col_vec;
+
+      if (!searchText || !col_vec) {
+        throw createError({
+          statusCode: 400,
+          message: 'Missing search text or col_vec for vector search'
+        });
+      }
+
+      // Create embedding for the search text
+      const vector = await createEmbeddings({searchText}, col_vec);
+
+      if (!Array.isArray(vector) || vector.length === 0) {
+        throw createError({
+          statusCode: 500,
+          message: 'Failed to create embedding for search text'
+        });
+      }
+
+      let queryConstraints = [];
+      if (workspaceId) {
+        queryConstraints.push(where('workspace_id', '==', workspaceId));
+      }
+      queryConstraints.push(where('deleted_at', '==', null));
+
+      const q = firestoreQuery(dataRef, ...queryConstraints);
+      const res = await getDocs(q);
+
+      let documents = res.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      // Calculate cosine similarity for each document and find the most similar one
+      let mostSimilarDocument = null;
+      let maxSimilarity = -1;
+
+      for (const document of documents) {
+        if (Array.isArray(document.vector)) {
+          const similarity = cosineSimilarity(vector, document.vector);
+          if (similarity > maxSimilarity) {
+            maxSimilarity = similarity;
+            mostSimilarDocument = document;
+          }
+        }
+      }
+
+      if (mostSimilarDocument) {
+        data = mostSimilarDocument;
+        console.log(`[Read] Vector search - retrieved document with ID ${mostSimilarDocument.id}, similarity: ${maxSimilarity}`);
+      } else {
+        data = null;
+        console.log(`[Read] Vector search - no similar documents found`);
+      }
     }
  
-    return {data: data};
+    return {statusCode: 200, data: data};
   } catch (error: any) {
     console.error('[Read] Error details:', {
       message: error.message,

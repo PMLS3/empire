@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { useForm } from 'vee-validate';
+import { useForm, Field } from 'vee-validate';
 import { toTypedSchema } from '@vee-validate/zod';
 import { z } from 'zod';
+import { useResearch } from '~/composables/useResearch';
+import { useBook } from '~/composables/useBook';
+import { useToaster } from '../../../../shared/composables/toaster';
 
-definePageMeta({
-  title: 'Create Research Project',
-});
 useHead({
   title: 'Create Research Project',
 });
@@ -13,6 +13,9 @@ useHead({
 // Use research composable
 const { createResearch } = useResearch();
 const router = useRouter();
+
+// Get book categories
+const { bookCategories } = useBook();
 
 // Form validation schema
 const validationSchema = toTypedSchema(
@@ -30,15 +33,25 @@ const initialValues = {
   main_category: '',
   sub_category: '',
   sub_category_description: '',
-  status: 'in_progress',
+  status: 'in_progress' as 'in_progress' | 'completed',
   is_public: false,
 };
 
 // Use form
-const { handleSubmit, isSubmitting, values, errors, resetForm } = useForm({
+const { handleSubmit, isSubmitting, values, setFieldValue, errors, resetForm } = useForm({
   validationSchema,
   initialValues,
 });
+
+// Debug the form values
+watch(() => values, (newValues) => {
+  console.log('Form values updated:', newValues);
+}, { deep: true });
+
+// Debug book categories
+watch(() => bookCategories.value, (newCategories) => {
+  console.log('Book categories updated:', newCategories);
+}, { immediate: true });
 
 // Toaster for notifications
 const toaster = useToaster();
@@ -46,6 +59,8 @@ const toaster = useToaster();
 // Submit handler
 const onSubmit = handleSubmit(async (formValues) => {
   try {
+    console.log('Submitting form with values:', formValues);
+    
     // Call composable to create research project
     const response = await createResearch(formValues);
     
@@ -55,18 +70,52 @@ const onSubmit = handleSubmit(async (formValues) => {
     }
   } catch (error) {
     console.error('Error creating research project:', error);
+    toaster.show({
+      title: 'Error',
+      message: 'Failed to create research project',
+      color: 'danger',
+      icon: 'ph:x-circle',
+      closable: true,
+    });
   }
 });
 
 // Category options
 const mainCategoryOptions = [
-  { value: 'fiction', label: 'Fiction' },
+  { value: 'book', label: 'Book' },
   { value: 'non-fiction', label: 'Non-Fiction' },
   { value: 'self-help', label: 'Self-Help' },
   { value: 'business', label: 'Business' },
   { value: 'technical', label: 'Technical' },
   { value: 'other', label: 'Other' },
 ];
+
+// When main category changes, reset sub category
+watch(() => values.main_category, (newMainCategory) => {
+  if (newMainCategory) {
+    // Reset sub category when main category changes
+    setFieldValue('sub_category', '');
+  }
+});
+
+
+// Make sure subcategory options have proper value/label format
+const subCategoryOptions = computed(() => {
+  // If main category is selected, return sub categories
+  if (!values.main_category) {
+    return [];
+  } else if (values.main_category === 'book' && bookCategories.value) {
+    console.log('Raw book categories:', bookCategories.value);
+    // Make sure we have proper id/value and name/label mappings
+    return bookCategories.value.map((category) => {
+      const value = category.id || category.value || '';
+      const label = category.name || category.label || value;
+      return { value, label }; 
+    });
+  }
+  return [];
+});
+
 </script>
 
 <template>
@@ -84,7 +133,6 @@ const mainCategoryOptions = [
           Create Research Project
         </BaseHeading>
       </div>
-      
       <!-- Form -->
       <form @submit.prevent="onSubmit">
         <div class="space-y-6">
@@ -96,14 +144,22 @@ const mainCategoryOptions = [
             <BaseParagraph size="xs" class="text-muted-400">
               Select the main book category you want to research
             </BaseParagraph>
-            <BaseSelect
-              v-model="values.main_category"
-              :items="mainCategoryOptions"
-              placeholder="Select a main category"
-              :error="errors.main_category"
-              shape="rounded"
-              required
-            />
+            <Field name="main_category" v-slot="{ field, errorMessage, handleChange, handleBlur }">
+              <BaseSelect
+                :model-value="field.value"
+                placeholder="Select a main category"
+                :error="errorMessage"
+                shape="rounded"
+                required
+                @update:model-value="handleChange"
+                @blur="handleBlur"
+              >
+                <option value="" disabled hidden>Select a main category</option>
+                <option v-for="option in mainCategoryOptions" :key="option.value" :value="option.value">
+                  {{ option.label }}
+                </option>
+              </BaseSelect>
+            </Field>
           </div>
           
           <!-- Sub Category -->
@@ -112,15 +168,26 @@ const mainCategoryOptions = [
               Subcategory
             </BaseHeading>
             <BaseParagraph size="xs" class="text-muted-400">
-              Enter a specific subcategory or niche for your research
+              Select a specific subcategory for your research
             </BaseParagraph>
-            <BaseInput
-              v-model="values.sub_category"
-              placeholder="E.g., Romance, Thriller, Marketing, etc."
-              :error="errors.sub_category"
-              shape="rounded"
-              required
-            />
+            
+            <!-- Use direct v-model binding with the Field component -->
+            <Field name="sub_category" v-slot="{ field, errorMessage, handleChange, handleBlur }">
+              <BaseSelect
+                :model-value="field.value"
+                placeholder="Select a sub category"
+                :error="errorMessage"
+                shape="rounded"
+                required
+                @update:model-value="handleChange"
+                @blur="handleBlur"
+              >
+                <option value="" disabled hidden>Select a sub category</option>
+                <option v-for="option in subCategoryOptions" :key="option.value" :value="option.value">
+                  {{ option.label }}
+                </option>
+              </BaseSelect>
+            </Field>
           </div>
           
           <!-- Description -->
@@ -131,13 +198,17 @@ const mainCategoryOptions = [
             <BaseParagraph size="xs" class="text-muted-400">
               Add a brief description to clarify the focus of your research
             </BaseParagraph>
-            <BaseTextarea
-              v-model="values.sub_category_description"
-              placeholder="Enter a description of what you're researching..."
-              :error="errors.sub_category_description"
-              rows="3"
-              shape="rounded"
-            />
+            <Field name="sub_category_description" v-slot="{ field, errorMessage, handleChange, handleBlur }">
+              <BaseTextarea
+                :model-value="field.value"
+                placeholder="Enter a description of what you're researching..."
+                :error="errorMessage"
+                rows="3"
+                shape="rounded"
+                @update:model-value="handleChange"
+                @blur="handleBlur"
+              />
+            </Field>
           </div>
           
           <!-- Status & Visibility -->
@@ -150,20 +221,29 @@ const mainCategoryOptions = [
               <BaseParagraph size="xs" class="text-muted-400">
                 Set the current status of your research project
               </BaseParagraph>
-              <BaseRadio
-                v-model="values.status"
-                name="status"
-                label="In Progress"
-                color="info"
-                value="in_progress"
-              />
-              <BaseRadio
-                v-model="values.status"
-                name="status"
-                label="Completed"
-                color="success"
-                value="completed"
-              />
+              <Field name="status" v-slot="{ field, errorMessage, handleChange, handleBlur }">
+                <div>
+                  <BaseRadio
+                    :model-value="field.value"
+                    name="status"
+                    label="In Progress"
+                    color="info"
+                    value="in_progress"
+                    @update:model-value="handleChange"
+                    @blur="handleBlur"
+                  />
+                  <BaseRadio
+                    :model-value="field.value"
+                    name="status"
+                    label="Completed"
+                    color="success"
+                    value="completed"
+                    @update:model-value="handleChange"
+                    @blur="handleBlur"
+                  />
+                  <div v-if="errorMessage" class="text-danger-500 mt-1 text-xs">{{ errorMessage }}</div>
+                </div>
+              </Field>
             </div>
             
             <!-- Visibility -->
@@ -174,15 +254,30 @@ const mainCategoryOptions = [
               <BaseParagraph size="xs" class="text-muted-400">
                 Control who can discover your research project
               </BaseParagraph>
-              <FormSwitch
-                v-model="values.is_public"
-                label="Make this project public"
-                color="primary"
-              />
-              <BaseParagraph size="xs" class="text-muted-400 mt-2 ps-8">
-                Public projects can be discovered by other users in your organization
-              </BaseParagraph>
+              <Field name="is_public" v-slot="{ field, errorMessage, handleChange, handleBlur }">
+                <div>
+                  <FormSwitchThin
+                    :model-value="field.value"
+                    label="Make this project public"
+                    color="primary"
+                    @update:model-value="handleChange"
+                    @blur="handleBlur"
+                  />
+                  <BaseParagraph size="xs" class="text-muted-400 mt-2 ps-8">
+                    Public projects can be discovered by other users in your organization
+                  </BaseParagraph>
+                  <div v-if="errorMessage" class="text-danger-500 mt-1 text-xs">{{ errorMessage }}</div>
+                </div>
+              </Field>
             </div>
+          </div>
+          
+          <!-- Form Errors -->
+          <div v-if="Object.keys(errors).length > 0" class="rounded-lg bg-danger-50 p-4 dark:bg-danger-500/20">
+            <h4 class="mb-2 font-medium text-danger-500">Please fix the following errors:</h4>
+            <ul class="list-disc pl-5 text-sm text-danger-500">
+              <li v-for="(error, key) in errors" :key="key">{{ error }}</li>
+            </ul>
           </div>
           
           <!-- Submit Buttons -->
