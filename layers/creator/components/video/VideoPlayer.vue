@@ -293,6 +293,7 @@ watch(error, (err) => {
 /* Override default input range appearance */
 input[type="range"] {
   -webkit-appearance: none;
+  appearance: none; /* Add standard property for compatibility */
   height: 3px;
   background: rgba(255, 255, 255, 0.3);
   border-radius: 5px;
