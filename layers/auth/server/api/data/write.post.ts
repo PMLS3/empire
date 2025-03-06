@@ -27,7 +27,7 @@ export default defineEventHandler(async (event) => {
     const workspaceId = session.currentWorkspace?.id
     const data = body as any
     const collection = body.collection
-    const col_vec = body.col_vec
+    const embed = body.embed // Use the same parameter name as in useCreatorData
 
     if (!workspaceId || !data || !collection) {
       throw createError({
@@ -36,51 +36,90 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    if (col_vec) {
-      console.log('Col vec', col_vec)
-    const embeddings = await createEmbeddings(data, col_vec)
-    console.log('Embeddings', embeddings)
-   if (embeddings) data['vector'] = embeddings
+    // Generate embeddings if fields are specified
+    if (embed && Array.isArray(embed) && embed.length > 0) {
+      console.log('Embedding fields:', embed)
+      const embeddings = await createEmbeddings(data, embed)
+      console.log('Embeddings generated:', !!embeddings)
+      if (embeddings) data['embedding'] = embeddings // Use 'embedding' for consistency
     }
 
     console.log(`[Write] Creating ${collection} in workspace ${workspaceId}`, { data })
 
     const { firestore } = useFirebaseServer(session.user?.token?.idToken as string)
 
-    // Query for existing research
-    
-      // Create new research
-      console.log(`[Write] No existing research, creating new one`)
-      const newWriteId = uuidv4()
-      console.log('ID', newWriteId)
-      const newWriteRef = doc(firestore, collection, newWriteId)
-      const newWriteData = {
-        workspace_id: workspaceId,
-        owner_id: session.user?.id,
-       ...data,
-        status: 'in_progress',
-        created_at: serverTimestamp(),
-        updated_at: serverTimestamp(),
-        deleted_at: null,
-        id: newWriteId
-      }
+    // Create new document
+    console.log(`[Write] Creating new document`)
+    const newWriteId = uuidv4()
+    console.log('ID', newWriteId)
+    const newWriteRef = doc(firestore, collection, newWriteId)
+    const newWriteData = {
+      workspace_id: workspaceId,
+      owner_id: session.user?.id,
+      ...data,
+      status: 'in_progress',
+      created_at: serverTimestamp(),
+      updated_at: serverTimestamp(),
+      deleted_at: null,
+      id: newWriteId
+    }
 
-      await setDoc(newWriteRef, newWriteData)
-      const write = {
-        ...newWriteData,
-        id: newWriteId,
-      }
-      console.log('ID', newWriteId)
-      console.log('Write', write)
+    await setDoc(newWriteRef, newWriteData)
+    const write = {
+      ...newWriteData,
+      id: newWriteId,
+    }
+    console.log('ID', newWriteId)
+    console.log('Write', write)
+    
     return {
       statusCode: 200,
       data: newWriteId
     }
   } catch (error: any) {
-    console.error('[Research] Error:', error)
+    console.error('[Write] Error:', error)
     throw createError({
       statusCode: error.statusCode || 500,
-      message: error.message || 'Failed to fetch research'
+      message: error.message || 'Failed to create document'
     })
   }
 })
+
+// Helper function to extract text from specified fields
+function getTextFromFields(data: any, fields: string[]): string {
+  if (!data) return '';
+  
+  // Collect text from all fields
+  const texts: string[] = [];
+  
+  fields.forEach(field => {
+    // Handle nested fields (e.g., metadata.tags)
+    const fieldParts = field.split('.');
+    let value = data;
+    
+    // Navigate through nested objects
+    for (const part of fieldParts) {
+      if (value && typeof value === 'object' && part in value) {
+        value = value[part];
+      } else {
+        value = undefined;
+        break;
+      }
+    }
+    
+    // Add field value to texts if it exists
+    if (value !== undefined) {
+      if (Array.isArray(value)) {
+        // Join array values with space
+        texts.push(value.join(' '));
+      } else if (typeof value === 'string') {
+        texts.push(value);
+      } else {
+        // Convert to string
+        texts.push(String(value));
+      }
+    }
+  });
+  
+  return texts.join(' ').trim();
+}

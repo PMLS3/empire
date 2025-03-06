@@ -210,6 +210,73 @@ const onSubmit = handleSubmit(async (formValues) => {
   }
 });
 
+const saveProject = async () => {
+  if (!validateForm()) return;
+
+  saving.value = true;
+
+  try {
+    const projectData = {
+      title: form.value.title,
+      description: form.value.description,
+      video_type: form.value.videoType,
+      template_id: form.value.templateId,
+      channel_id: form.value.channelId,
+      target_platform: form.value.targetPlatforms,
+      status: 'draft',
+      metadata: {
+        category: form.value.category,
+        tags: form.value.tags,
+        language: form.value.language,
+      },
+      settings: {
+        duration_target: parseInt(form.value.duration),
+        quality: form.value.quality,
+        format: form.value.format,
+      },
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    // Fields to be embedded for vector search
+    const embedFields = ['title', 'description', 'metadata.tags'];
+    
+    let result;
+    if (props.editMode && props.projectId) {
+      // Update existing project
+      result = await updateData('projects', props.projectId, projectData, embedFields);
+      toaster.show({
+        title: 'Success',
+        message: 'Project updated successfully',
+        color: 'success',
+        icon: 'ph:check-circle-duotone',
+      });
+    } else {
+      // Create new project
+      result = await createData('projects', projectData, embedFields);
+      toaster.show({
+        title: 'Success',
+        message: 'Project created successfully',
+        color: 'success',
+        icon: 'ph:check-circle-duotone',
+      });
+    }
+
+    // Emit save event with project ID
+    emit('saved', result?.id || props.projectId);
+  } catch (err) {
+    console.error('Error saving project:', err);
+    toaster.show({
+      title: 'Error',
+      message: 'Failed to save project',
+      color: 'danger',
+      icon: 'ph:warning-circle-duotone',
+    });
+  } finally {
+    saving.value = false;
+  }
+};
+
 // Cancel form
 const onCancel = () => {
   emit('canceled');

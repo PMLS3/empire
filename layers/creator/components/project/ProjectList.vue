@@ -1,57 +1,173 @@
 <script setup lang="ts">
+import { ref, computed, watch, onMounted } from 'vue';
+import { useCreatorData } from '../../composables/useCreatorData';
 import type { VideoProject } from '../../types/project';
 
 const props = defineProps<{
-  projects: VideoProject[];
-  loading?: boolean;
+  channelId?: string;
+  limit?: number;
 }>();
 
-const emit = defineEmits(['view', 'edit']);
+const { queryData, searchByVector, loading, error } = useCreatorData();
 
-// Project status colors
-const statusColors = {
-  'draft': 'warning',
-  'in_progress': 'info',
-  'ready_to_publish': 'success',
-  'published': 'primary',
-  'archived': 'muted',
-};
+const projects = ref<Array<VideoProject>>([]);
+const searchQuery = ref('');
+const searchResults = ref<Array<VideoProject>>([]);
+const isSearching = ref(false);
 
-// Format duration in minutes and seconds
-const formatDuration = (seconds: number): string => {
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = seconds % 60;
-  
-  if (minutes === 0) {
-    return `${remainingSeconds}s`;
-  }
-  
-  return `${minutes}m ${remainingSeconds}s`;
-};
+// Filter states
+const filters = ref({
+  status: '',
+  videoType: '',
+  platform: '',
+  dateRange: '',
+});
 
-// Format date to relative time (e.g., "2 days ago")
-const formatDate = (date: Date | string): string => {
-  if (!date) return '';
-  
-  const d = typeof date === 'string' ? new Date(date) : date;
-  const now = new Date();
-  const diffMs = now.getTime() - d.getTime();
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-  
-  if (diffDays === 0) {
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    if (diffHours === 0) {
-      const diffMinutes = Math.floor(diffMs / (1000 * 60));
-      return diffMinutes <= 1 ? 'Just now' : `${diffMinutes} minutes ago`;
+// Sorting state
+const sortBy = ref('updated_at');
+const sortDirection = ref('desc');
+
+// Load projects based on props and filters
+const loadProjects = async () => {
+  try {
+    // Build filter object
+    const filterObject = {} as Record<string, any>;
+    
+    // Add channel filter if provided
+    if (props.channelId) {
+      filterObject.channel_id = props.channelId;
     }
-    return `${diffHours} hour${diffHours === 1 ? '' : 's'} ago`;
+    
+    // Add status filter if selected
+    if (filters.value.status) {
+      filterObject.status = filters.value.status;
+    }
+    
+    // Add video type filter if selected
+    if (filters.value.videoType) {
+      filterObject.video_type = filters.value.videoType;
+    }
+    
+    // Add platform filter if selected
+    if (filters.value.platform) {
+      filterObject[`target_platform`] = filters.value.platform;
+    }
+    
+    // Add date range filter if selected
+    if (filters.value.dateRange) {
+      // Implementation depends on date range format
+      // This is a placeholder for the actual implementation
+      const dateFilter = getDateFilter(filters.value.dateRange);
+      if (dateFilter) {
+        filterObject.created_at = dateFilter;
+      }
+    }
+    
+    const response = await queryData('projects', {
+      filters: filterObject,
+      limit: props.limit || 20,
+      orderBy: sortBy.value,
+      orderDirection: sortDirection.value,
+    });
+    
+    if (Array.isArray(response)) {
+      projects.value = response;
+    }
+  } catch (err) {
+    console.error('Error loading projects:', err);
   }
-  if (diffDays === 1) return 'Yesterday';
-  if (diffDays < 7) return `${diffDays} days ago`;
-  
-  const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'short', day: 'numeric' };
-  return d.toLocaleDateString(undefined, options);
 };
+
+// Handle search with vector search
+const handleSearch = async () => {
+  if (!searchQuery.value.trim()) {
+    searchResults.value = [];
+    isSearching.value = false;
+    return;
+  }
+  
+  isSearching.value = true;
+  
+  try {
+    // Build filter object
+    const filterObject = {} as Record<string, any>;
+    
+    // Add channel filter if provided
+    if (props.channelId) {
+      filterObject.channel_id = props.channelId;
+    }
+    
+    const results = await searchByVector(
+      'projects',
+      searchQuery.value,
+      {
+        filters: filterObject,
+        limit: props.limit || 20,
+      }
+    );
+    
+    if (Array.isArray(results)) {
+      searchResults.value = results;
+    }
+  } catch (err) {
+    console.error('Error searching projects:', err);
+  }
+};
+
+// Debounce search to avoid excessive API calls
+const debouncedSearch = useDebounceFn(handleSearch, 300);
+
+// Watch for search query changes
+watch(searchQuery, () => {
+  if (searchQuery.value.trim()) {
+    debouncedSearch();
+  } else {
+    searchResults.value = [];
+    isSearching.value = false;
+  }
+});
+
+// Watch for filter changes
+watch([filters, sortBy, sortDirection], () => {
+  loadProjects();
+}, { deep: true });
+
+// Helper function to determine date filter
+const getDateFilter = (range: string) => {
+  const now = new Date();
+  
+  switch (range) {
+    case 'today':
+      const startOfDay = new Date(now);
+      startOfDay.setHours(0, 0, 0, 0);
+      return { $gte: startOfDay.toISOString() };
+      
+    case 'week':
+      const startOfWeek = new Date(now);
+      startOfWeek.setDate(now.getDate() - now.getDay());
+      startOfWeek.setHours(0, 0, 0, 0);
+      return { $gte: startOfWeek.toISOString() };
+      
+    case 'month':
+      const startOfMonth = new Date(now);
+      startOfMonth.setDate(1);
+      startOfMonth.setHours(0, 0, 0, 0);
+      return { $gte: startOfMonth.toISOString() };
+      
+    default:
+      return null;
+  }
+};
+
+// Computed property to display projects or search results
+const displayedProjects = computed(() => {
+  return searchQuery.value.trim() ? searchResults.value : projects.value;
+});
+
+// Initial load
+onMounted(() => {
+  loadProjects();
+});
 </script>
 
 <template>
@@ -72,7 +188,7 @@ const formatDate = (date: Date | string): string => {
   
     <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       <BaseCard 
-        v-for="project in projects" 
+        v-for="project in displayedProjects" 
         :key="project.id"
         class="p-0 hover:border-primary-500 transition-colors duration-300 cursor-pointer"
         @click="emit('view', project)"

@@ -1,203 +1,171 @@
-import { defineEventHandler } from 'h3'
-import { getUserSession, type UserSession } from '../../utils/session'
-import { useFirebaseServer } from '../../firebase/init'
-import { collection as firestoreCollection, query as firestoreQuery, where, getDocs, doc, getDoc, serverTimestamp } from 'firebase/firestore'
-import { v4 as uuidv4 } from 'uuid'
-import { createError, readBody } from 'h3'
-import { createEmbeddings } from '../../utils/session'
+import { defineEventHandler, readBody, createError } from 'h3';
+import { getServerSession } from '#auth';
+import { db } from '../../lib/firebase';
+import { 
+  collection, 
+  doc, 
+  getDoc, 
+  query, 
+  where, 
+  orderBy, 
+  limit, 
+  startAfter, 
+  getDocs,
+  CollectionReference,
+  DocumentData,
+  Query
+} from 'firebase/firestore';
+import { createEmbeddings } from '../../utils/session';
 
-// Function to calculate cosine similarity between two vectors
-function cosineSimilarity(vecA: number[], vecB: number[]): number {
-  let dotProduct = 0;
-  let magnitudeA = 0;
-  let magnitudeB = 0;
-  for (let i = 0; i < vecA.length; i++) {
-    dotProduct += vecA[i] * vecB[i];
-    magnitudeA += vecA[i] * vecA[i];
-    magnitudeB += vecB[i] * vecB[i];
-  }
-  magnitudeA = Math.sqrt(magnitudeA);
-  magnitudeB = Math.sqrt(magnitudeB);
-  if (magnitudeA === 0 || magnitudeB === 0) return 0;
-  return dotProduct / (magnitudeA * magnitudeB);
+// Helper function to map query operators to Firestore operators
+function getFirestoreOperator(operator: string): string {
+  const operatorMap = {
+    $eq: '==',
+    $ne: '!=',
+    $gt: '>',
+    $gte: '>=',
+    $lt: '<',
+    $lte: '<=',
+    $in: 'in',
+    $nin: 'not-in',
+    $contains: 'array-contains',
+    $containsAny: 'array-contains-any',
+  };
+
+  return operatorMap[operator] || '==';
+}
+
+// Placeholder function for vector search
+// In a real app, this would use Firestore's vector search capabilities
+function vectorSearch(field: string, embedding: number[], dimensions: number, distance: number) {
+  // This would be replaced with the actual Firestore vector search implementation
+  // For instance, this might return some Firebase vector search operator
+  return {
+    fieldPath: field,
+    embedding,
+    distance,
+  };
 }
 
 export default defineEventHandler(async (event) => {
+  // Check authentication
+  const session = await getServerSession(event);
+  if (!session) {
+    throw createError({
+      statusCode: 401,
+      statusMessage: 'Unauthorized',
+    });
+  }
+
   try {
-    console.log('[Read] Starting handler')
-    
-    // Get user session - try from cookie first, then from Authorization header
-    let session: UserSession | null = await getUserSession(event);
-    
-    // Attempt to get authentication from header if session is not available
-    if (!session) {
-      const authHeader = event.headers.get('authorization');
-      console.log('[Read] No session cookie, checking Authorization header:', !!authHeader);
-      
-      if (authHeader && authHeader.startsWith('Bearer ')) {
-        const token = authHeader.substring(7);
-        try {
-          // Use the token to initialize Firebase
-          const { firestore } = useFirebaseServer(token);
-          // Create a minimal session
-          session = {
-            user: { token: { idToken: token } },
-            authenticated: true
-          } as UserSession;
-          console.log('[Read] Created session from Authorization header');
-        } catch (authError) {
-          console.error('[Read] Failed to authenticate with token:', authError);
-        }
-      }
-    }
-    
-    if (!session) {
-      console.error('[Read] Authentication failed: No valid session or token provided');
-      throw createError({
-        statusCode: 401,
-        message: 'Unauthorized: No valid session or token'
-      });
-    }
-
-    // Get query parameters
     const body = await readBody(event);
-    console.log('[Read] Request body:', JSON.stringify(body, null, 2));
-     
-    const workspaceId = session.currentWorkspace?.id || body.workspace_id;
-    const readType = body.readType as 'id' | 'query' | 'vector';
-    const collectionName = body.collection; // Rename to avoid conflict with Firebase collection function
-    const filters = body.filters;
-    const id = body.id;
+    
+    // Extract query parameters
+    const {
+      collection: collectionName,
+      id,
+      filters = {},
+      limit: limitCount = 20,
+      orderBy: orderByField = null,
+      orderDirection = 'desc',
+      startAfter: startAfterDoc = null,
+      vec = null,
+    } = body;
 
-    if (!readType || !collectionName) {
+    // Validate collection name
+    if (!collectionName) {
       throw createError({
         statusCode: 400,
-        message: 'Missing required parameters: readType or collection'
+        statusMessage: 'Collection name is required',
       });
     }
 
-    console.log(`[Read] Reading ${collectionName} with type ${readType}, workspace: ${workspaceId || 'N/A'}`);
+    // If id is provided, fetch a single document
+    if (id) {
+      const docRef = doc(db, collectionName, id);
+      const docSnapshot = await getDoc(docRef);
 
-    const { firestore } = useFirebaseServer(session.user?.token?.idToken as string);
-
-    // Query for existing data - using firestoreCollection instead of collection
-    const dataRef = firestoreCollection(firestore, collectionName);
-    let data = {};
-
-    if (readType === 'query') {
-      // Query for collection data
-      let queryConstraints = [];
-      
-      // Add workspace filter if available and appropriate
-      if (workspaceId) {
-        queryConstraints.push(where('workspace_id', '==', workspaceId));
+      if (!docSnapshot.exists()) {
+        return null;
       }
-      
-      // Add deleted_at filter
-      queryConstraints.push(where('deleted_at', '==', null));
-      
-      // Add custom filters if provided
-      if (Array.isArray(filters) && filters.length > 0) {
-        for (const filter of filters) {
-          if (filter.field && filter.operator && filter.value !== undefined) {
-            queryConstraints.push(where(filter.field, filter.operator, filter.value));
-          }
-        }
-      }
-      
-      const q = firestoreQuery(dataRef, ...queryConstraints);
-      let res = await getDocs(q);
-      data = res.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      
-      console.log(`[Read] Query returned ${res.docs.length} documents`);
-   
-    } else if (readType === 'id') {
-      const newDataRef = doc(firestore, collectionName, id);
-      let res = await getDoc(newDataRef);
- 
-      if (!res.exists()) {
-        console.log(`[Read] Document with ID ${id} not found`);
-        data = null;
-      } else {
-        data = {
-          id: id,
-          ...res.data()
-        };
-        console.log(`[Read] Retrieved document with ID ${id}`);
-      }
-    } else if (readType === 'vector') {
-      // Vector search implementation
-      const searchText = body.searchText;
-      const col_vec = body.col_vec;
 
-      if (!searchText || !col_vec) {
-        throw createError({
-          statusCode: 400,
-          message: 'Missing search text or col_vec for vector search'
+      return {
+        id: docSnapshot.id,
+        ...docSnapshot.data(),
+      };
+    }
+
+    // Otherwise, perform a query
+    let dbQuery: Query<DocumentData> = collection(db, collectionName) as CollectionReference<DocumentData>;
+
+    // Add filters
+    Object.entries(filters).forEach(([field, value]) => {
+      if (typeof value === 'object' && value !== null) {
+        // Handle range queries like { $gte: '2023-01-01' }
+        Object.entries(value).forEach(([operator, operandValue]) => {
+          const firestoreOperator = getFirestoreOperator(operator);
+          dbQuery = query(dbQuery, where(field, firestoreOperator, operandValue));
         });
-      }
-
-      // Create embedding for the search text
-      const vector = await createEmbeddings({searchText}, col_vec);
-
-      if (!Array.isArray(vector) || vector.length === 0) {
-        throw createError({
-          statusCode: 500,
-          message: 'Failed to create embedding for search text'
-        });
-      }
-
-      let queryConstraints = [];
-      if (workspaceId) {
-        queryConstraints.push(where('workspace_id', '==', workspaceId));
-      }
-      queryConstraints.push(where('deleted_at', '==', null));
-
-      const q = firestoreQuery(dataRef, ...queryConstraints);
-      const res = await getDocs(q);
-
-      let documents = res.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-
-      // Calculate cosine similarity for each document and find the most similar one
-      let mostSimilarDocument = null;
-      let maxSimilarity = -1;
-
-      for (const document of documents) {
-        if (Array.isArray(document.vector)) {
-          const similarity = cosineSimilarity(vector, document.vector);
-          if (similarity > maxSimilarity) {
-            maxSimilarity = similarity;
-            mostSimilarDocument = document;
-          }
-        }
-      }
-
-      if (mostSimilarDocument) {
-        data = mostSimilarDocument;
-        console.log(`[Read] Vector search - retrieved document with ID ${mostSimilarDocument.id}, similarity: ${maxSimilarity}`);
       } else {
-        data = null;
-        console.log(`[Read] Vector search - no similar documents found`);
+        dbQuery = query(dbQuery, where(field, '==', value));
+      }
+    });
+
+    // Handle vector search if provided
+    if (vec && vec.query) {
+      // Integrate vector search with filters
+      const vectorQuery = {
+        query: vec.query,
+        field: vec.field || 'embedding',
+        dimensions: vec.dimensions || 768,
+        distance: vec.distance || 0.5,
+      };
+
+      // Generate embeddings for the search query using the existing createEmbeddings function
+      // Create a temporary object with the query text and a key for createEmbeddings to use
+      const tempData = { queryText: vec.query };
+      const embedding = await createEmbeddings(tempData, ['queryText']);
+      
+      // Add vector search parameters
+      dbQuery = query(
+        dbQuery, 
+        // Using a placeholder for Firestore vector search feature
+        // This would use the actual Firestore vector search syntax
+        vectorSearch(vectorQuery.field, embedding, vectorQuery.dimensions, vectorQuery.distance)
+      );
+    }
+
+    // Add ordering
+    if (orderByField) {
+      dbQuery = query(dbQuery, orderBy(orderByField, orderDirection as any));
+    }
+    
+    // Add pagination
+    dbQuery = query(dbQuery, limit(limitCount));
+    
+    if (startAfterDoc) {
+      const startAfterDocRef = doc(db, collectionName, startAfterDoc);
+      const startAfterDocSnapshot = await getDoc(startAfterDocRef);
+      
+      if (startAfterDocSnapshot.exists()) {
+        dbQuery = query(dbQuery, startAfter(startAfterDocSnapshot));
       }
     }
- 
-    return {statusCode: 200, data: data};
-  } catch (error: any) {
-    console.error('[Read] Error details:', {
-      message: error.message,
-      stack: error.stack,
-      cause: error.cause
-    });
+
+    // Execute the query
+    const querySnapshot = await getDocs(dbQuery);
     
+    const results = querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    return results;
+  } catch (error) {
+    console.error('Data read error:', error);
     throw createError({
-      statusCode: error.statusCode || 500,
-      message: error.message || 'Failed to read data'
+      statusCode: 500,
+      statusMessage: error.message || 'Error reading data',
     });
   }
 });

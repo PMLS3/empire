@@ -1,66 +1,95 @@
-import { defineEventHandler } from 'h3'
-import { getUserSession, type UserSession } from '../../utils/session'
-import { useFirebaseServer } from '../../firebase/init'
-import { collection, query as firestoreQuery, where, getDocs, doc, setDoc, serverTimestamp } from 'firebase/firestore'
-import { v4 as uuidv4 } from 'uuid'
-import { createError, readBody } from 'h3'
+import { defineEventHandler, readBody, createError } from 'h3';
+import { getServerSession } from '#auth';
+import { db } from '../../lib/firebase';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { createEmbeddings } from '../../utils/session';
 
 export default defineEventHandler(async (event) => {
+  // Check authentication
+  const session = await getServerSession(event);
+  if (!session) {
+    throw createError({
+      statusCode: 401,
+      statusMessage: 'Unauthorized',
+    });
+  }
+
   try {
-    console.log('[Write] Starting handler')
-    
-    // Get user session
-    const session: UserSession | null = await getUserSession(event)
-    if (!session) {
-      throw createError({
-        statusCode: 401,
-        message: 'Unauthorized'
-      })
-    }
+    const body = await readBody(event);
+    const { collection: collectionName, id, data, embed = [] } = body;
 
-    // Get query parameters
-    const body = await readBody(event)
-    const docId = body?.id
-    const data = body as any
-    const collection = body.collection
-
-    if (!docId || !data || !collection) {
+    // Validate collection name, id, and data
+    if (!collectionName) {
       throw createError({
         statusCode: 400,
-        message: 'Missing required parameters'
-      })
+        statusMessage: 'Collection name is required',
+      });
     }
 
-    console.log(`[Update] Update ${collection} in workspace ${docId}`, { data })
+    if (!id) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: 'Document ID is required',
+      });
+    }
 
-    const { firestore } = useFirebaseServer(session.user?.token?.idToken as string)
+    if (!data) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: 'Data is required',
+      });
+    }
 
-      // Create new research
-      console.log(`[Update] No existing ${collection}, creating new one`)
-      const newWriteId = uuidv4()
-      const newWriteRef = doc(firestore, collection, newWriteId)
-      const newWriteData = {
-       ...data,
-        updated_at: serverTimestamp(),
-        deleted_at: null
+    // Get document reference
+    const docRef = doc(db, collectionName, id);
+    
+    // Check if document exists
+    const docSnapshot = await getDoc(docRef);
+    if (!docSnapshot.exists()) {
+      throw createError({
+        statusCode: 404,
+        statusMessage: 'Document not found',
+      });
+    }
+
+    // Check ownership if user_id is present in the document
+    const docData = docSnapshot.data();
+    if (docData.user_id && session.user?.id && docData.user_id !== session.user.id) {
+      throw createError({
+        statusCode: 403,
+        statusMessage: 'You do not have permission to update this document',
+      });
+    }
+
+    // Generate embeddings for specified fields
+    let dataWithEmbeddings = { ...data };
+    
+    // Generate embeddings if fields are specified using the imported createEmbeddings
+    if (embed && Array.isArray(embed) && embed.length > 0) {
+      const embeddings = await createEmbeddings(data, embed);
+      
+      if (embeddings) {
+        dataWithEmbeddings.embedding = embeddings;
       }
+    }
 
-      await setDoc(newWriteRef, newWriteData)
+    // Add updated timestamp
+    dataWithEmbeddings.updated_at = new Date().toISOString();
+    
+    // Update the document
+    await updateDoc(docRef, dataWithEmbeddings);
 
-      const write = {
-        id: newWriteId,
-        ...newWriteData,
-      }
-
+    // Return updated data with ID
     return {
-      statusCode: 200,
-      data: write
-    }
-  } catch (error: any) {
-    console.error('[Research] Error:', error)
+      id,
+      ...docData,
+      ...dataWithEmbeddings,
+    };
+  } catch (error) {
+    console.error('Data update error:', error);
     throw createError({
       statusCode: error.statusCode || 500,
-      message: error.message || 'Failed to fetch research'
-    })
+      statusMessage: error.message || 'Error updating data',
+    });
   }
-}) 
+});

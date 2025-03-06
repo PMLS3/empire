@@ -210,6 +210,108 @@ export const useCreatorData = () => {
     }
   };
 
+  /**
+   * Query data with filters and optional vector search
+   */
+  const queryData = async (
+    collection: string, 
+    {
+      filters = {},
+      limit = 20,
+      orderBy = null,
+      orderDirection = 'desc',
+      startAfter = null,
+      vectorQuery = null,
+      vectorField = null,
+      vectorDimensions = 768,
+      vectorDistance = 0.5
+    } = {}
+  ) => {
+    loading.value = true;
+    error.value = null;
+
+    try {
+      const queryParams = {
+        collection,
+        filters,
+        limit,
+        orderBy,
+        orderDirection,
+        startAfter,
+      };
+
+      // Add vector search parameters if provided
+      if (vectorQuery) {
+        queryParams['vec'] = {
+          query: vectorQuery,
+          field: vectorField || 'embedding',
+          dimensions: vectorDimensions,
+          distance: vectorDistance
+        };
+      }
+
+      const response = await $fetch('/api/data/read', {
+        method: 'POST',
+        body: queryParams,
+      });
+
+      loading.value = false;
+      return response;
+    } catch (err) {
+      console.error(`Error querying ${collection}:`, err);
+      error.value = `Failed to query ${collection}`;
+      loading.value = false;
+      throw err;
+    }
+  };
+
+  /**
+   * Search for content using vector search
+   */
+  const searchByVector = async (
+    collection: string,
+    searchQuery: string,
+    {
+      filters = {},
+      limit = 20,
+      vectorField = 'embedding',
+      vectorDimensions = 768,
+      vectorDistance = 0.5
+    } = {}
+  ) => {
+    if (!searchQuery.trim()) {
+      return [];
+    }
+
+    loading.value = true;
+    error.value = null;
+
+    try {
+      const response = await $fetch('/api/data/read', {
+        method: 'POST',
+        body: {
+          collection,
+          filters,
+          limit,
+          vec: {
+            query: searchQuery,
+            field: vectorField,
+            dimensions: vectorDimensions,
+            distance: vectorDistance,
+          },
+        },
+      });
+
+      loading.value = false;
+      return response;
+    } catch (err) {
+      console.error(`Error searching ${collection}:`, err);
+      error.value = `Failed to search ${collection}`;
+      loading.value = false;
+      throw err;
+    }
+  };
+
   return {
     dataList,
     currentData,
@@ -220,5 +322,7 @@ export const useCreatorData = () => {
     createData,
     updateData,
     deleteData,
+    queryData,
+    searchByVector,
   };
 };
