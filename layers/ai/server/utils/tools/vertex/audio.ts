@@ -1,4 +1,5 @@
 import { VertexAI } from '@google-cloud/vertexai';
+import { TextToSpeechClient } from '@google-cloud/text-to-speech';
 
 /**
  * TODO(developer): Update these variables before running the sample.
@@ -63,4 +64,67 @@ export async function transcript_audio(projectId = 'PROJECT_ID', location = 'us-
   const resp = await generativeModel.generateContent(request);
   const contentResponse = await resp.response;
   console.log(JSON.stringify(contentResponse));
+}
+
+export async function generateSpeech(
+  projectId: string,
+  location: string,
+  text: string,
+  voiceName: string = 'en-US-Neural2-F',
+  languageCode: string = 'en-US',
+  speakingRate: number = 1.0,
+  pitch: number = 0.0,
+  volumeGainDb: number = 0.0,
+  effectsProfileId: string[] = [],
+  outputFormat: string = 'MP3'
+) {
+  // Create a client
+  const client = new TextToSpeechClient();
+
+  // Convert output format to proper enum value
+  const audioEncoding = outputFormat === 'MP3' ? 'MP3' : 'LINEAR16';
+
+  // Construct the request
+  const request = {
+    input: { text },
+    voice: { 
+      name: voiceName, 
+      languageCode 
+    },
+    audioConfig: {
+      audioEncoding,
+      speakingRate,
+      pitch,
+      volumeGainDb,
+      effectsProfileId
+    },
+  };
+
+  try {
+    // Call the Text-to-Speech API
+    const [response] = await client.synthesizeSpeech(request);
+    
+    // The response's audioContent is Binary
+    const audioContent = response.audioContent;
+    
+    // Convert binary to base64 for easy transport
+    return Buffer.from(audioContent as Uint8Array).toString('base64');
+  } catch (error) {
+    console.error('Error generating speech:', error);
+    throw error;
+  }
+}
+
+// Function to get available voices
+export async function listVoices(languageCode: string = '') {
+  const client = new TextToSpeechClient();
+  
+  try {
+    // Call the Text-to-Speech API
+    const [response] = await client.listVoices({ languageCode });
+    return response.voices;
+  } catch (error) {
+    console.error('Error listing voices:', error);
+    throw error;
+  }
 }

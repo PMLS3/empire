@@ -76,3 +76,78 @@ export async function sendMultiModalPromptWithImage(
     throw new Error('Failed to generate content');
   }
 }
+
+export async function generateImage(
+  projectId: string,
+  location: string,
+  model: string = 'imagegeneration@005',
+  prompt: string,
+  negativePrompt: string = '',
+  sampleCount: number = 1,
+  width: number = 1024,
+  height: number = 1024,
+  style: string = 'photographic'
+) {
+  if (!projectId) {
+    throw new Error('Project ID is required');
+  }
+
+  // Initialize Vertex AI
+  const vertexAI = new VertexAI({ project: projectId, location: location });
+  const generativeModel = vertexAI.getGenerativeModel({ model: model });
+
+  // Create generation parameters
+  const generationParams = {
+    sampleCount,
+    negativePrompt: negativePrompt || undefined,
+    aspect_ratio: getAspectRatio(width, height)
+  };
+
+  if (style) {
+    generationParams['style'] = style;
+  }
+
+  // Create the request
+  const request = {
+    prompt: {
+      prompt: prompt,
+    },
+    parameters: generationParams
+  };
+
+  try {
+    // Generate the image
+    const response = await generativeModel.generateImages(request);
+    
+    // Extract images from the response
+    const images = response.images.map(img => {
+      return {
+        base64: img.base64,
+        mimeType: 'image/png'
+      };
+    });
+    
+    return images;
+  } catch (error) {
+    console.error('Error generating images with Vertex AI:', error);
+    throw error;
+  }
+}
+
+// Helper function to determine the aspect ratio
+function getAspectRatio(width: number, height: number): string {
+  if (width === height) {
+    return '1:1';
+  } else if (width === 1024 && height === 768) {
+    return '4:3';
+  } else if (width === 768 && height === 1024) {
+    return '3:4';
+  } else if (width === 1024 && height === 576) {
+    return '16:9';
+  } else if (width === 576 && height === 1024) {
+    return '9:16';
+  }
+  
+  // Default to square aspect ratio if no match
+  return '1:1';
+}
