@@ -10,6 +10,7 @@ import { promises as fs } from 'fs'
 import { getUserSession, type UserSession } from '../../../../auth/server/utils/session'
 import { useFirebaseServer } from '../../../../auth/server/firebase/init'
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
+import * as XLSX from 'xlsx';
 
 type File = {
   src: string;
@@ -113,6 +114,17 @@ export default defineEventHandler(async (event: any) => {
           understanding: understanding.fullTextResponse,
           usageMetadata: understanding.usageMetadata
         };
+      } else if (file.type === 'application/vnd.ms-excel' || file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
+        const workbook = XLSX.readFile(filepath);
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+        // Now you can analyze the jsonData using Vertex AI
+        // For example, you can summarize the data or extract key information
+        // const understanding = await analyze_excel_data(projectId, location, model, jsonData);
+
+        understandings = { file: { src: filepath, type: file.type }, understanding: JSON.stringify(jsonData) };
       }
 
       // Store understanding results in Firestore

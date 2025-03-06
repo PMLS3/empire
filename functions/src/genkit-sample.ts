@@ -1,3 +1,13 @@
+/**
+ * This file provides sample Genkit flows and functions.
+ *
+ * It can be used as a starting point for building your own Genkit flows and
+ * functions.
+ */
+import { defineFlow, defineFunction } from '@genkit-ai/firebase';
+import { TextPart } from '@google-cloud/vertexai/build/src/types/content';
+import { vertexAiChat } from '@genkit-ai/vertexai';
+
 // Import the Genkit core libraries and plugins.
 import {genkit, z} from "genkit";
 import {vertexAI} from "@genkit-ai/vertexai";
@@ -59,5 +69,142 @@ export const menuSuggestionFlow = onFlow(
     // response into structured output or chain the response into another
     // LLM call, etc.
     return llmResponse.text;
+  }
+);
+
+/**
+ * This is a sample Genkit flow that uses the Gemini Pro model to generate a
+ * response to a prompt.
+ */
+export const greetFlow = defineFlow(
+  'greetFlow',
+  async (name: string) => {
+    const result = await vertexAiChat.generate({
+      prompt: `Say hello to ${name}`,
+    });
+    return result.reply;
+  },
+  {
+    inputSchema: {
+      type: 'string',
+    },
+    outputSchema: {
+      type: 'string',
+    },
+  }
+);
+
+/**
+ * This is a sample Genkit function that uses the Gemini Pro Vision model to
+ * generate a response to a prompt, given an image.
+ */
+export const imageUnderstand = defineFunction(
+  'imageUnderstand',
+  async (userPrompt: string, image: string) => {
+    const result = await vertexAiChat.generate({
+      prompt: userPrompt,
+      image: {
+        inlineData: {
+          data: image,
+          mimeType: 'image/png',
+        },
+      },
+    });
+    return result.reply;
+  },
+  {
+    inputSchema: {
+      type: 'object',
+      properties: {
+        userPrompt: {
+          type: 'string',
+        },
+        image: {
+          type: 'string',
+        },
+      },
+      required: ['userPrompt', 'image'],
+    },
+    outputSchema: {
+      type: 'string',
+    },
+  }
+);
+
+/**
+ * This is a sample Genkit function that uses the Gemini Pro Vision model to
+ * generate a response to a prompt, given a video.
+ */
+export const videoUnderstand = defineFunction(
+  'videoUnderstand',
+  async (userPrompt: string, video: string) => {
+    const result = await vertexAiChat.generate({
+      prompt: userPrompt,
+      video: {
+        inlineData: {
+          data: video,
+          mimeType: 'video/mp4',
+        },
+      },
+    });
+    return result.reply;
+  },
+  {
+    inputSchema: {
+      type: 'object',
+      properties: {
+        userPrompt: {
+          type: 'string',
+        },
+        video: {
+          type: 'string',
+        },
+      },
+      required: ['userPrompt', 'video'],
+    },
+    outputSchema: {
+      type: 'string',
+    },
+  }
+);
+
+/**
+ * This is a sample Genkit function that uses the Gemini Pro model to generate a
+ * response to a prompt, given a list of text parts.
+ */
+export const textPartsUnderstand = defineFunction(
+  'textPartsUnderstand',
+  async (userPrompt: string, textParts: TextPart[]) => {
+    const result = await vertexAiChat.generate({
+      prompt: userPrompt,
+      textParts,
+    });
+    return result.reply;
+  },
+  {
+    inputSchema: {
+      type: 'object',
+      properties: {
+        userPrompt: {
+          type: 'string',
+        },
+        textParts: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              text: {
+                type: 'string',
+              },
+            },
+            required: ['text'],
+          },
+        },
+      },
+      required: ['userPrompt', 'textParts'],
+    },
+    outputSchema: {
+      type: 'string',
+    },
   }
 );
