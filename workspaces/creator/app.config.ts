@@ -89,6 +89,12 @@ export default defineAppConfig({
             activePath: '/research',
           },
           {
+            title: 'Creator',
+            icon: { name: 'ph:book-open-duotone', class: 'w-5 h-5' },
+            subsidebar: { component: 'SubsidebarVideo' },
+            activePath: '/creator',
+          },
+          {
             title: 'File Manager',
             icon: { name: 'ph:file-duotone', class: 'w-5 h-5' },
             to: '/file-manager',

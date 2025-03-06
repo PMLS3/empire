@@ -6,18 +6,18 @@ const navigation = [
       {
         name: 'Video Overview',
         icon: 'ph:video-camera-duotone',
-        to: '/creator/dashboard',
+        to: '/creator/video/dashboard',
         exact: true,
       },
       {
         name: 'Recent Activity',
         icon: 'ph:activity-duotone',
-        to: '/creator/activity',
+        to: '/creator/video/activity',
       },
       {
         name: 'Analytics',
         icon: 'ph:chart-bar-duotone',
-        to: '/creator/analytics',
+        to: '/creator/video/analytics',
       }
     ],
   },
@@ -27,18 +27,18 @@ const navigation = [
       {
         name: 'All Projects',
         icon: 'ph:folder-open-duotone',
-        to: '/creator/projects',
+        to: '/creator/video/projects',
         exact: true,
       },
       {
         name: 'Create Project',
         icon: 'ph:plus-circle-duotone',
-        to: '/creator/projects/new',
+        to: '/creator/video/projects/new',
       },
       {
         name: 'Templates',
         icon: 'ph:template-duotone',
-        to: '/creator/templates',
+        to: '/creator/video/templates',
       }
     ],
   },
@@ -48,13 +48,13 @@ const navigation = [
       {
         name: 'All Channels',
         icon: 'ph:broadcast-duotone',
-        to: '/creator/channel',
+        to: '/creator/video/channel',
         exact: true,
       },
       {
         name: 'Connect Channel',
         icon: 'ph:link-duotone',
-        to: '/creator/channel/connect',
+        to: '/creator/video/channel/connect',
       }
     ],
   },
@@ -64,17 +64,17 @@ const navigation = [
       {
         name: 'Script Generator',
         icon: 'ph:text-t-duotone',
-        to: '/creator/tools/script',
+        to: '/creator/video/tools/script',
       },
       {
         name: 'Voice Generator',
         icon: 'ph:microphone-stage-duotone',
-        to: '/creator/tools/voice',
+        to: '/creator/video/tools/voice',
       },
       {
         name: 'Image Generator',
         icon: 'ph:image-duotone',
-        to: '/creator/tools/image',
+        to: '/creator/video/tools/image',
       }
     ],
   },
@@ -84,23 +84,23 @@ const navigation = [
       {
         name: 'All Assets',
         icon: 'ph:film-strip-duotone',
-        to: '/creator/assets',
+        to: '/creator/video/assets',
         exact: true,
       },
       {
         name: 'Upload Assets',
         icon: 'ph:upload-simple-duotone',
-        to: '/creator/assets/upload',
+        to: '/creator/video/assets/upload',
       },
       {
         name: 'Audio Library',
         icon: 'ph:music-notes-duotone',
-        to: '/creator/assets/audio',
+        to: '/creator/video/assets/audio',
       },
       {
         name: 'Image Library',
         icon: 'ph:image-square-duotone',
-        to: '/creator/assets/images',
+        to: '/creator/video/assets/images',
       }
     ],
   },
@@ -113,12 +113,12 @@ const navigation = [
       {
         name: 'Job Queue Status',
         icon: 'ph:queue-duotone',
-        to: '/creator/system/jobs',
+        to: '/creator/video/system/jobs',
       },
       {
         name: 'Performance Testing',
         icon: 'ph:gauge-duotone',
-        to: '/creator/testing/performance',
+        to: '/creator/video/testing/performance',
       }
     ],
   },
@@ -128,27 +128,27 @@ const navigation = [
       {
         name: 'Preferences',
         icon: 'ph:gear-six-duotone',
-        to: '/creator/settings',
+        to: '/creator/video/settings',
       },
       {
         name: 'Export Settings',
         icon: 'ph:export-duotone',
-        to: '/creator/settings/export',
+        to: '/creator/video/settings/export',
       },
       {
         name: 'Platform Connections',
         icon: 'ph:plugs-connected-duotone',
-        to: '/creator/settings/connections',
+        to: '/creator/video/settings/connections',
       },
       {
         name: 'Team Access',
         icon: 'ph:users-three-duotone',
-        to: '/creator/settings/team',
+        to: '/creator/video/settings/team',
       },
       {
         name: 'Content Moderation',
         icon: 'ph:shield-check-duotone',
-        to: '/creator/settings/moderation',
+        to: '/creator/video/settings/moderation',
       }
     ],
   }
