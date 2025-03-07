@@ -484,6 +484,149 @@ export const functionGroups: Record<string, FunctionGroup> = {
 };
 ```
 
+## Working with Existing Components
+
+When implementing a new layer or modifying an existing one, developers **MUST**:
+
+1. **Audit existing components** before creating new ones:
+   - Check for existing components, pages, server endpoints, and composables in the layer
+   - Reuse and update existing components rather than creating duplicates
+   - Document any modifications made to existing components
+
+2. **Request confirmation before deletion**:
+   - Identify components that are no longer needed
+   - Document the reason for proposed deletion
+   - **ALWAYS** get explicit user confirmation before deleting any files
+   - Include impact analysis of deletion in the confirmation request
+
+3. **Follow the component modification workflow**:
+   ```
+   1. Identify existing component
+   2. Evaluate if it meets requirements
+   3. If updates needed, modify in place
+   4. If deletion needed, request confirmation
+   5. Document all changes
+   ```
+
+### Example Confirmation Request
+
+```markdown
+## Component Deletion Confirmation
+
+I propose deleting the following components as they appear to be unused:
+
+1. `layers/your-layer/components/LegacyWidget.vue`
+   - Reason: Functionality replaced by new `ModernWidget.vue`
+   - Last modified: 6 months ago
+   - No references found in codebase
+
+2. `layers/your-layer/composables/useDeprecatedFeature.ts`
+   - Reason: Functionality now handled by shared layer
+   - No active imports found
+
+Please confirm if these components can be safely deleted.
+```
+
+## Mandatory Subsidebar Component
+
+Each layer **MUST** implement a dedicated subsidebar component:
+
+1. **Create a subsidebar file** at `layers/shared/components/global/Subsidebar{LayerName}.vue`
+   - Follow the naming convention exactly (e.g., `SubsidebarResearch.vue`, `SubsidebarCRM.vue`)
+   - Use the existing subsidebar components as reference
+
+2. **Implement standard structure**:
+   ```vue
+   <script setup lang="ts">
+   const navigation = [
+     {
+       name: 'Category Name',
+       children: [
+         {
+           name: 'Item Name',
+           icon: 'ph:icon-name-duotone',
+           to: '/your-layer/route-path',
+           exact: true,
+         },
+         // Additional navigation items
+       ],
+     },
+     // Additional categories
+     {
+       divider: true,  // Optional divider between categories
+     },
+   ]
+   </script>
+
+   <template>
+     <Subsidebar>
+       <template #header>
+         <SubsidebarHeader />
+       </template>
+
+       <SubsidebarMenu :navigation="navigation" />
+     </Subsidebar>
+   </template>
+   ```
+
+3. **Register the subsidebar** in the layer's UI configuration
+
+### Example Subsidebar Implementation
+
+```vue
+<!-- layers/shared/components/global/SubsidebarResearch.vue -->
+<script setup lang="ts">
+const navigation = [
+  {
+    name: 'Research',
+    children: [
+      {
+        name: 'Projects',
+        icon: 'ph:folder-duotone',
+        to: '/research/projects',
+        exact: true,
+      },
+      {
+        name: 'Books',
+        icon: 'ph:book-duotone',
+        to: '/research/books',
+      },
+      {
+        name: 'Notes',
+        icon: 'ph:note-duotone',
+        to: '/research/notes',
+      },
+    ],
+  },
+  {
+    name: 'Tools',
+    children: [
+      {
+        name: 'Search',
+        icon: 'ph:magnifying-glass-duotone',
+        to: '/research/search',
+      },
+      {
+        name: 'Analysis',
+        icon: 'ph:chart-line-duotone',
+        to: '/research/analysis',
+      },
+    ],
+  },
+]
+</script>
+
+<template>
+  <Subsidebar>
+    <template #header>
+      <SubsidebarHeader />
+    </template>
+
+    <SubsidebarMenu :navigation="navigation" />
+  </Subsidebar>
+</template>
+```
+
 ## UI/UX Guidelines
 
 Consistent UI/UX is critical across the application:
@@ -491,6 +634,7 @@ Consistent UI/UX is critical across the application:
 1. **Reference the demo project** for UI components and patterns
 2. **Tagged pages must be replicated** as closely as possible
 3. **Follow the design system** for colors, typography, and spacing
+4. **Implement the required subsidebar** for your layer
 
 ### UI Implementation Tips
 
@@ -666,10 +810,12 @@ All UI components MUST be accessible:
 1. **Plan your layer**: Define its purpose and functionality
 2. **Review existing code**: Check for similar features or reusable components
 3. **Design with consistency**: Follow the UI/UX guidelines
-4. **Implement data handling**: Use the standardized data endpoints
-5. **Add AI capabilities**: Integrate with the AI layer
-6. **Create agent**: Build function groups and add to chat
-7. **Test thoroughly**: Ensure all features work correctly
-8. **Document**: Add clear documentation for your layer
+4. **Implement required components**: Create the layer's subsidebar and other required components
+5. **Reuse existing components**: Use and update existing components when available
+6. **Implement data handling**: Use the standardized data endpoints
+7. **Add AI capabilities**: Integrate with the AI layer
+8. **Create agent**: Build function groups and add to chat
+9. **Test thoroughly**: Ensure all features work correctly
+10. **Document**: Add clear documentation for your layer
 
 Following these guidelines will ensure your layer integrates seamlessly with the Empire ecosystem while maintaining code quality and user experience consistency.
