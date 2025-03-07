@@ -1,6 +1,6 @@
-# Video Creator Platform
+# Creator Platform
 
-A comprehensive video creation, editing, and publishing platform built with Vue.js and Nuxt.js, designed to help creators streamline their workflow from ideation to distribution.
+A comprehensive content creation, editing, and publishing platform built with Vue.js and Nuxt.js, designed to help creators streamline their workflow from ideation to distribution. The platform supports both video and book publishing workflows.
 
 ## 📋 Table of Contents
 
@@ -12,6 +12,7 @@ A comprehensive video creation, editing, and publishing platform built with Vue.
 - [Asset Management](#asset-management)
 - [Project Management](#project-management)
 - [Channel Management](#channel-management)
+- [Book Publishing](#book-publishing)
 - [Settings & Configuration](#settings--configuration)
 - [Development](#development)
 - [API Integration](#api-integration)
@@ -20,25 +21,27 @@ A comprehensive video creation, editing, and publishing platform built with Vue.
 
 ## 🔍 Overview
 
-The Video Creator Platform is a comprehensive web application that empowers content creators to produce high-quality videos using AI-assisted tools, manage their projects, and publish content directly to various social media platforms. The platform combines traditional video editing capabilities with cutting-edge AI features for script generation, voice synthesis, image creation, and more.
+The Creator Platform is a comprehensive web application that empowers content creators to produce high-quality videos and books using AI-assisted tools, manage their projects, and publish content directly to various platforms. The platform combines traditional editing capabilities with cutting-edge AI features for script generation, voice synthesis, image creation, text enhancement, and more.
 
 ## ✨ Features
 
 ### Core Features
-- **Project Management** - Create, edit, and manage video projects
-- **Timeline-based Editor** - Arrange scenes, transitions, and elements
-- **Asset Library** - Manage your video, audio, and image assets
-- **AI-Assisted Creation** - Generate scripts, images, and voiceovers with AI
-- **Publishing** - Export and publish videos to various platforms
+- **Project Management** - Create, edit, and manage video and book projects
+- **Timeline-based Editor** - Arrange scenes, transitions, and elements for videos
+- **Book Editor** - Write, format, and organize book content with chapters and sections
+- **Asset Library** - Manage your video, audio, image, and text assets
+- **AI-Assisted Creation** - Generate scripts, images, voiceovers, and text with AI
+- **Publishing** - Export and publish videos and books to various platforms
 - **Analytics** - Track performance across different platforms
 - **Collaboration** - Work with team members on projects
 - **Templates** - Start new projects using pre-made templates
 
 ### AI Capabilities
-- Script generation for different video styles
+- Script and text generation for different styles
 - Text-to-speech voiceover synthesis
-- AI image generation for video assets
+- AI image generation for video assets and book covers/illustrations
 - Video rendering and processing
+- Text enhancement and editing suggestions
 
 ### Platform Integrations
 - YouTube
@@ -47,6 +50,10 @@ The Video Creator Platform is a comprehensive web application that empowers cont
 - Facebook
 - Twitter
 - LinkedIn
+- Amazon KDP
+- Apple Books
+- Google Play Books
+- Kobo
 
 ## 🏛️ Architecture
 
@@ -67,19 +74,28 @@ The application is built using the following tech stack:
 - `/creator/activity` - User activity timeline
 - `/creator/analytics` - Performance analytics for published content
 
-### Projects
-- `/creator/projects` - List all projects
-- `/creator/projects/new` - Create a new project
-- `/creator/projects/[id]` - Project details
-- `/creator/projects/[id]/edit` - Project editor
+### Video Projects
+- `/creator/video/projects` - List all video projects
+- `/creator/video/projects/new` - Create a new video project
+- `/creator/video/projects/[id]` - Video project details
+- `/creator/video/projects/[id]/edit` - Video project editor
+
+### Book Projects
+- `/creator/book/projects` - List all book projects
+- `/creator/book/projects/new` - Create a new book project
+- `/creator/book/projects/[id]` - Book project details
+- `/creator/book/projects/[id]/edit` - Book project editor
+- `/creator/book/projects/[id]/preview` - Book preview
 
 ### Templates
-- `/creator/templates` - Browse available templates
+- `/creator/video/templates` - Browse available video templates
+- `/creator/book/templates` - Browse available book templates
 
 ### Assets Management
 - `/creator/assets/upload` - Upload new assets
 - `/creator/assets/audio` - Audio library
 - `/creator/assets/images` - Image library
+- `/creator/assets/text` - Text snippets library
 
 ### Channel Management
 - `/creator/channel` - Channel overview
@@ -90,6 +106,7 @@ The application is built using the following tech stack:
 - `/creator/tools/script` - AI script generator
 - `/creator/tools/voice` - AI voice generator
 - `/creator/tools/image` - AI image generator
+- `/creator/tools/text` - AI text generator and enhancer
 
 ### Settings
 - `/creator/settings` - User preferences
@@ -121,12 +138,20 @@ Convert text to natural-sounding speech with the following features:
 - Integration with projects
 
 ### Image Generation
-Create custom images for your videos with AI:
+Create custom images for your videos and books with AI:
 - Detailed prompt-based generation
 - Negative prompts for exclusions
 - Multiple aspect ratio options
 - Style selection (vivid, natural, cinematic, etc.)
 - Export to projects or download
+
+### Text Generation and Enhancement
+Generate and improve text content for books and scripts:
+- Chapter and section generation based on outlines
+- Style and tone adjustments
+- Grammar and spelling correction
+- Readability improvements
+- Content expansion and summarization
 
 ## 📦 Asset Management
 
@@ -136,10 +161,11 @@ Upload and manage various file types:
 - Audio (MP3, WAV, OGG, etc.)
 - Images (JPG, PNG, GIF, WebP, etc.)
 - Captions (SRT, VTT)
+- Text (TXT, DOCX, PDF, etc.)
 
 ### Organization
 Assets are organized by:
-- Type (video, audio, image, caption)
+- Type (video, audio, image, caption, text)
 - Project association
 - Custom tags
 - Date added
@@ -152,14 +178,24 @@ Assets are organized by:
 - Short-form video content
 - Presentations
 - Social media content
+- Books and e-books
+- Articles and blog posts
 
-### Editor Features
+### Video Editor Features
 - Timeline-based editing
 - Scene arrangement
 - Transition effects
 - Text overlay and captions
 - Audio tracks and mixing
 - Version history
+
+### Book Editor Features
+- Chapter and section management
+- Rich text formatting
+- Image insertion and placement
+- Table of contents generation
+- Footnotes and endnotes
+- Version history and tracking
 
 ### Collaboration
 - Team member invitations
@@ -184,6 +220,59 @@ Assets are organized by:
 - Scheduling capabilities
 - Audience insights
 
+## 📚 Book Publishing
+
+### Book Types
+- Novels and fiction
+- Non-fiction books
+- Educational materials
+- Cookbooks
+- Children's books
+- Poetry collections
+- Technical documentation
+
+### Editor Features
+- Chapter and section organization
+- Rich text formatting with styles
+- Image insertion and management
+- Table of contents generation
+- Footnotes and endnotes
+- Citation management
+- Track changes and version history
+
+### Formatting Options
+- Multiple page sizes and orientations
+- Custom margins and gutters
+- Font selection and typography controls
+- Header and footer customization
+- Page numbering options
+- Custom styles and templates
+
+### Publishing Platforms
+- Amazon Kindle Direct Publishing (KDP)
+- Apple Books
+- Google Play Books
+- Kobo Writing Life
+- Barnes & Noble Press
+- Draft2Digital
+- IngramSpark
+
+### Export Formats
+- EPUB (for most e-readers)
+- MOBI (for Kindle)
+- PDF (for print and digital distribution)
+- HTML (for web publishing)
+- DOCX (for further editing)
+
+### AI Assistance
+- Plot and outline generation
+- Character development suggestions
+- Setting descriptions
+- Dialogue enhancement
+- Style consistency checking
+- Grammar and spelling correction
+- Content expansion and summarization
+
 ## ⚙️ Settings & Configuration
 
 ### User Preferences
@@ -196,6 +285,7 @@ Assets are organized by:
 ### Export Settings
 - Video format configuration
 - Audio settings
+- Book format settings
 - Destination options
 - Watermarking
 - Optimization settings
@@ -241,7 +331,9 @@ pnpm dev
 ### External Services
 - AI providers for text, speech, and image generation
 - Video processing and rendering services
+- Book formatting and conversion services
 - Social media platform APIs
+- Publishing platform APIs
 - Storage providers
 
 ## 🧪 Testing

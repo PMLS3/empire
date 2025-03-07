@@ -1,5 +1,49 @@
 <script setup lang="ts">
-const { templates, customTemplates, saveAsTemplate, deleteTemplate, applyTemplate } = useTextTemplates()
+import { ref } from 'vue'
+
+const templates = ref([
+  {
+    id: 'heading-1',
+    name: 'Heading 1',
+    styles: {
+      font: 'Arial',
+      size: '24px',
+      color: '#000000',
+      weight: 'bold',
+      lineHeight: 1.2
+    }
+  },
+  {
+    id: 'body-text',
+    name: 'Body Text',
+    styles: {
+      font: 'Georgia',
+      size: '16px',
+      color: '#333333',
+      weight: 'normal',
+      lineHeight: 1.5
+    }
+  },
+  {
+    id: 'quote',
+    name: 'Quote',
+    styles: {
+      font: 'Georgia',
+      size: '18px',
+      color: '#666666',
+      weight: 'italic',
+      lineHeight: 1.6
+    }
+  }
+])
+
+const emit = defineEmits(['apply-template'])
+
+const applyTemplate = (template: any) => {
+  emit('apply-template', template.styles)
+}
+
+const { customTemplates, saveAsTemplate, deleteTemplate } = useTextTemplates()
 const { textState } = useTextTools()
 
 const showSaveDialog = ref(false)

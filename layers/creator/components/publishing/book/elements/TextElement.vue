@@ -1,59 +1,8 @@
 <script setup lang="ts">
-
-const { editorState } = useEditor()
+import { computed, ref, watch, nextTick } from 'vue'
 
 const props = defineProps<{
-  element: {
-    id: string
-    text: {
-      content: string
-      font: string
-      size: number
-      color: string
-      alignment: 'left' | 'center' | 'right'
-      bold: boolean
-      italic: boolean
-      underline: boolean
-      lineHeight: number
-      letterSpacing: number
-      opacity: number
-      effects: {
-        shadow: {
-          enabled: boolean
-          color: string
-          blur: number
-          offsetX: number
-          offsetY: number
-        }
-        outline: {
-          enabled: boolean
-          color: string
-          width: number
-        }
-      }
-      wrapping: {
-        enabled: boolean
-        mode: 'none' | 'around' | 'through'
-        margin: number
-        excludeElements: string[]  // IDs of elements to ignore for wrapping
-      }
-      transform: {
-        rotate: number
-        skewX: number
-        skewY: number
-        flipX: boolean
-        flipY: boolean
-      }
-    }
-    style: {
-      width: string
-      height: string
-      top: string
-      left: string
-      transform: string
-      zIndex?: string
-    }
-  }
+  element: any
   selected: boolean
   canvasWidth: number
   canvasHeight: number
@@ -61,138 +10,258 @@ const props = defineProps<{
   snapToGrid: boolean
 }>()
 
-const isEditing = ref(false)
-const isDragMode = ref(true)  // Default to drag mode
+const emit = defineEmits(['select', 'move', 'resize', 'rotate', 'textChange', 'update'])
 
-const emit = defineEmits<{
-  (e: 'select', event: MouseEvent): void
-  (e: 'resize', size: { width: number; height: number }): void
-  (e: 'move', position: { x: number; y: number }): void
-  (e: 'rotate', angle: number): void
-  (e: 'textChange', content: string): void
-  (e: 'update', updates: Partial<typeof props.element.text>): void
-  (e: 'toggleMode', isDragMode: boolean): void
-}>()
+// Get required values from the element
+const { id, style, text } = props.element
 
-const handleDoubleClick = (e: MouseEvent) => {
-  if (!isDragMode.value) {  // Only handle double click in edit mode
-    e.stopPropagation()
-    isEditing.value = true
-    editorState.value.text.isEditing = true
-  }
-}
-
-const toggleMode = (newMode: boolean) => {
-  isDragMode.value = newMode
-  if (isDragMode.value) {
-    isEditing.value = false
-    editorState.value.text.isEditing = false
-  }
-}
-
-const handleBlur = () => {
-  isEditing.value = false
-  editorState.value.text.isEditing = false
-}
-
-const textStyle = computed(() => ({
-  fontFamily: props.element.text.font,
-  fontSize: `${props.element.text.size}px`,
-  color: props.element.text.color,
-  textAlign: props.element.text.alignment,
-  fontWeight: props.element.text.bold ? 'bold' : 'normal',
-  fontStyle: props.element.text.italic ? 'italic' : 'normal',
-  textDecoration: props.element.text.underline ? 'underline' : 'none',
-  lineHeight: props.element.text.lineHeight,
-  letterSpacing: `${props.element.text.letterSpacing}px`,
-  opacity: props.element.text.opacity,
-  cursor: isDragMode.value ? 'move' : 'text',
-  userSelect: isDragMode.value ? 'none' : 'text',
-  WebkitUserSelect: isDragMode.value ? 'none' : 'text',
-  ...(props.element.text.effects.shadow.enabled && {
-    textShadow: `${props.element.text.effects.shadow.offsetX}px ${props.element.text.effects.shadow.offsetY}px ${props.element.text.effects.shadow.blur}px ${props.element.text.effects.shadow.color}`
-  }),
-  ...(props.element.text.effects.outline.enabled && {
-    WebkitTextStroke: `${props.element.text.effects.outline.width}px ${props.element.text.effects.outline.color}`,
-    textStroke: `${props.element.text.effects.outline.width}px ${props.element.text.effects.outline.color}`
-  }),
-  transform: [
-    `rotate(${props.element.text.transform.rotate}deg)`,
-    `skew(${props.element.text.transform.skewX}deg, ${props.element.text.transform.skewY}deg)`,
-    props.element.text.transform.flipX ? 'scaleX(-1)' : '',
-    props.element.text.transform.flipY ? 'scaleY(-1)' : ''
-  ].filter(Boolean).join(' ')
-}))
-
-const handleTextUpdate = (updates: Partial<typeof props.element.text>) => {
-  emit('update', updates)
-}
-
-// Get all elements that could affect text wrapping
-const wrappingElements = computed(() => {
-  if (!props.element.text.wrapping.enabled) return []
-  return editorState.value.elements.filter(el =>
-    el.id !== props.element.id &&
-    !props.element.text.wrapping.excludeElements.includes(el.id) &&
-    ['shape', 'image', 'puzzle'].includes(el.type)
-  )
+// Element positioning
+const position = ref({
+  x: parseInt(style.left) || 0,
+  y: parseInt(style.top) || 0,
+  width: parseInt(style.width) || 200,
+  height: parseInt(style.height) || 100,
+  rotation: style.transform ? parseFloat(style.transform.replace(/[^\d.-]/g, '')) || 0 : 0
 })
 
-// Calculate text wrapping path
-const textWrapPath = computed(() => {
-  if (!props.element.text.wrapping.enabled || wrappingElements.value.length === 0) {
-    return null
+// Text editing state
+const isEditing = ref(false)
+const textContent = ref(text?.content || '')
+const textElement = ref<HTMLDivElement | null>(null)
+
+// Watch for content changes to update the model
+watch(textContent, (newValue) => {
+  emit('textChange', newValue)
+})
+
+// Apply text styles
+const textStyles = computed(() => {
+  if (!text) return {}
+  
+  let styles = {
+    fontFamily: text.font || 'Arial',
+    fontSize: `${text.size || 16}px`,
+    color: text.color || '#000000',
+    textAlign: text.alignment || 'left',
+    fontWeight: text.bold ? 'bold' : 'normal',
+    fontStyle: text.italic ? 'italic' : 'normal',
+    textDecoration: text.underline ? 'underline' : 'none',
+    lineHeight: text.lineHeight || 1.5,
+    letterSpacing: `${text.letterSpacing || 0}px`,
+    opacity: text.opacity || 1,
+    whiteSpace: 'pre-wrap',
+    wordBreak: 'break-word',
   }
+  
+  // Add text effects if enabled
+  if (text.effects?.shadow?.enabled) {
+    const shadow = text.effects.shadow
+    styles.textShadow = `${shadow.offsetX || 2}px ${shadow.offsetY || 2}px ${shadow.blur || 4}px ${shadow.color || '#000000'}`
+  }
+  
+  if (text.effects?.outline?.enabled) {
+    const outline = text.effects.outline
+    styles.WebkitTextStroke = `${outline.width || 1}px ${outline.color || '#000000'}`
+  }
+  
+  return styles
+})
 
-  // Create path for text to wrap around
-  const paths = wrappingElements.value.map(el => {
-    const rect = el.style
-    const margin = props.element.text.wrapping.margin
-    return `M${rect.left - margin},${rect.top - margin} h${rect.width + 2 * margin} v${rect.height + 2 * margin} h-${rect.width + 2 * margin}Z`
+// Handlers
+const handleDragStart = (e: MouseEvent) => {
+  // If we're editing text, don't start dragging
+  if (isEditing.value) return
+  
+  e.stopPropagation()
+  emit('select', e)
+}
+
+const handleDoubleClick = (e: MouseEvent) => {
+  e.stopPropagation()
+  isEditing.value = true
+  nextTick(() => {
+    // Focus and select all text when entering edit mode
+    if (textElement.value) {
+      textElement.value.focus()
+    }
   })
+}
 
-  return paths.join(' ')
+const handleInputBlur = () => {
+  isEditing.value = false
+}
+
+// Handle position updates from the parent
+watch(() => props.element.style, (newStyle) => {
+  position.value = {
+    x: parseInt(newStyle.left) || 0,
+    y: parseInt(newStyle.top) || 0,
+    width: parseInt(newStyle.width) || 200,
+    height: parseInt(newStyle.height) || 100,
+    rotation: newStyle.transform ? parseFloat(newStyle.transform.replace(/[^\d.-]/g, '')) || 0 : 0
+  }
+}, { deep: true })
+
+// Handle content updates from the parent
+watch(() => props.element.text, (newText) => {
+  if (newText && !isEditing.value) {
+    textContent.value = newText.content || ''
+  }
+}, { deep: true })
+
+// Implement text wrapping around other elements if enabled
+const getTextWrapStyles = computed(() => {
+  if (!text?.wrapping?.enabled) return {}
+  
+  return {
+    flexWrap: 'wrap',
+    flexDirection: 'column',
+    alignContent: 'flex-start'
+  }
+})
+
+// Handle content paste to strip formatting
+const handlePaste = (e: ClipboardEvent) => {
+  e.preventDefault()
+  if (!e.clipboardData) return
+  
+  const text = e.clipboardData.getData('text/plain')
+  document.execCommand('insertText', false, text)
+}
+
+// Helper to convert text alignment to flexbox alignment
+const getAlignmentStyle = computed(() => {
+  if (!text?.alignment) return 'flex-start'
+  
+  switch (text.alignment) {
+    case 'center': return 'center'
+    case 'right': return 'flex-end'
+    default: return 'flex-start'
+  }
 })
 </script>
 
 <template>
-  <DraggableElement
-    :selected="selected"
-    :style="element.style"
-    :canvas-width="canvasWidth"
-    :canvas-height="canvasHeight"
-    :grid-size="gridSize"
-    :snap-to-grid="snapToGrid"
-    :draggable="isDragMode"
-    @select="(e) => emit('select', e)"
-    @move="(pos) => emit('move', pos)"
-    @resize="(size) => emit('resize', size)"
-    @rotate="(angle) => emit('rotate', angle)"
+  <div
+    :id="id"
+    class="absolute text-element"
+    :class="{ selected: selected }"
+    :style="{
+      left: `${position.x}px`,
+      top: `${position.y}px`, 
+      width: `${position.width}px`,
+      height: 'auto',
+      transform: `rotate(${position.rotation}deg)`,
+      cursor: isEditing ? 'text' : 'move'
+    }"
+    @mousedown="handleDragStart"
+    @dblclick="handleDoubleClick"
   >
-    <!-- Text Toolbar -->
-    <PublishingBookToolsTextToolbar
-      v-if="selected"
-      :element="element"
-      :is-drag-mode="isDragMode"
-      @update="handleTextUpdate"
-      @toggle-mode="toggleMode"
-    />
+    <!-- Text content -->
     <div
-      class="w-full h-full"
-      :style="[
-        textStyle,
-        element.text.wrapping.enabled && {
-          shapeOutside: textWrapPath ? `path('${textWrapPath}')` : 'none',
-          shapeMargin: `${element.text.wrapping.margin}px`
-        }
-      ]"
-      :contenteditable="!isDragMode"
-      @click.stop="isDragMode.value && toggleMode(false)"
-      @dblclick="handleDoubleClick"
-      @blur="handleBlur"
-      @input="(e) => emit('textChange', (e.target as HTMLElement).innerText)"
-    >
-      {{ element.text.content }}
-    </div>
-  </DraggableElement>
+      ref="textElement"
+      class="text-content"
+      :style="{
+        ...textStyles,
+        ...getTextWrapStyles,
+        outline: isEditing ? '2px solid #4CAF50' : 'none',
+        minHeight: '1em',
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        alignItems: 'flex-start',
+        justifyContent: getAlignmentStyle
+      }"
+      :contenteditable="isEditing"
+      @blur="handleInputBlur"
+      @paste="handlePaste"
+      v-html="textContent"
+      @input="e => textContent = e.target.innerHTML"
+    ></div>
+    
+    <!-- Resize handles -->
+    <template v-if="selected && !isEditing">
+      <div class="resize-handle top-left"></div>
+      <div class="resize-handle top-right"></div>
+      <div class="resize-handle bottom-left"></div>
+      <div class="resize-handle bottom-right"></div>
+      
+      <!-- Rotation handle -->
+      <div class="rotation-handle">
+        <Icon name="ph:arrow-clockwise-bold" class="w-4 h-4 text-primary-500" />
+      </div>
+    </template>
+  </div>
 </template>
+
+<style scoped>
+.text-element {
+  position: absolute;
+  user-select: none;
+}
+
+.text-element.selected {
+  outline: 2px solid #4CAF50;
+}
+
+.text-content {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  padding: 4px;
+}
+
+.text-content[contenteditable="true"] {
+  cursor: text;
+  user-select: text;
+  outline-offset: 2px;
+}
+
+.resize-handle {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background-color: white;
+  border: 1px solid #4CAF50;
+  border-radius: 50%;
+}
+
+.top-left {
+  top: -5px;
+  left: -5px;
+  cursor: nwse-resize;
+}
+
+.top-right {
+  top: -5px;
+  right: -5px;
+  cursor: nesw-resize;
+}
+
+.bottom-left {
+  bottom: -5px;
+  left: -5px;
+  cursor: nesw-resize;
+}
+
+.bottom-right {
+  bottom: -5px;
+  right: -5px;
+  cursor: nwse-resize;
+}
+
+.rotation-handle {
+  position: absolute;
+  top: -30px;
+  left: calc(50% - 10px);
+  width: 20px;
+  height: 20px;
+  background-color: white;
+  border: 1px solid #4CAF50;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38"/></svg>'), auto;
+}
+</style>

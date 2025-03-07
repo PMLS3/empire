@@ -162,6 +162,34 @@ const endGuideDrag = () => {
   const guideOrientation = props.orientation === 'vertical' ? 'horizontal' : 'vertical'
   emit('guide-created', previewPosition.value, guideOrientation)
 }
+
+// Add measurement display
+const showMeasurement = computed(() => props.measurements && editorState.value.showMeasurements)
+
+const guideLabels = computed(() => {
+  if (!showMeasurement.value) return []
+  
+  return [
+    {
+      label: orientation === 'horizontal' ? 'Left' : 'Top',
+      value: `${position}px`,
+      style: {
+        [orientation === 'horizontal' ? 'left' : 'top']: '-20px',
+        transform: orientation === 'vertical' ? 'rotate(-90deg)' : 'none',
+        transformOrigin: 'left center'
+      }
+    },
+    {
+      label: orientation === 'horizontal' ? 'Right' : 'Bottom',
+      value: `${length - position}px`,
+      style: {
+        [orientation === 'horizontal' ? 'right' : 'bottom']: '-20px',
+        transform: orientation === 'vertical' ? 'rotate(-90deg)' : 'none',
+        transformOrigin: 'right center'
+      }
+    }
+  ]
+})
 </script>
 
 <template>
@@ -194,6 +222,18 @@ const endGuideDrag = () => {
         cursor: isDragging ? (orientation === 'horizontal' ? 'row-resize' : 'col-resize') : 'default'
       }"
     />
+
+    <!-- Add measurement labels -->
+    <template v-if="showMeasurement">
+      <div 
+        v-for="(label, index) in guideLabels" 
+        :key="index"
+        class="absolute px-1 py-0.5 bg-gray-800 text-white text-xs rounded"
+        :style="label.style"
+      >
+        {{ label.label }}: {{ label.value }}
+      </div>
+    </template>
   </div>
 </template>
 

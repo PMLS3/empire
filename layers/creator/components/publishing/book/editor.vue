@@ -457,6 +457,9 @@ const handleCanvasMouseDown = (e: MouseEvent) => {
     )
     currentShapeId.value = element.id
   } else {
+    if (e.button === 0) { // Left mouse button
+      startSelectionBox(e)
+    }
     startCanvasDrag({ x: e.clientX, y: e.clientY })
   }
 }
@@ -508,6 +511,7 @@ const handleCanvasMouseMove = (e: MouseEvent) => {
       })
     }
   } else {
+    updateSelectionBox(e)
     updateCanvasDrag({ x: e.clientX, y: e.clientY })
   }
 }
@@ -529,6 +533,7 @@ const handleCanvasMouseUp = () => {
     editorState.value.shape.endPoint = null
     editorState.value.shape.active = false
   } else {
+    endSelectionBox()
     stopCanvasDrag()
   }
 }
@@ -537,7 +542,25 @@ const handleCanvasMouseUp = () => {
 const handleElementSelect = (elementId: string, event: MouseEvent) => {
   if (editorState.value.drawing.active) return
   event.stopPropagation()
-  selectElement(elementId)
+  
+  // Check for shift key for multi-select
+  if (event.shiftKey) {
+    // Toggle element in selection
+    if (editorState.value.selectedElements.has(elementId)) {
+      editorState.value.selectedElements.delete(elementId)
+      // Update selectedElement to another element in the set or null
+      const remainingElements = Array.from(editorState.value.selectedElements)
+      editorState.value.selectedElement = remainingElements.length ? remainingElements[0] : null
+    } else {
+      editorState.value.selectedElements.add(elementId)
+      editorState.value.selectedElement = elementId
+    }
+  } else {
+    // Regular single select
+    editorState.value.selectedElements.clear()
+    editorState.value.selectedElements.add(elementId)
+    editorState.value.selectedElement = elementId
+  }
 }
 
 // Update handleElementMove to handle cover sections
@@ -772,8 +795,101 @@ onMounted(() => {
       updateElementStyle: handleAIStyleUpdate,
       updatePuzzleProperties: handleAIPuzzleUpdate
     }
+    
+    // Add keyboard event listeners
+    window.addEventListener('keydown', handleKeyDown)
   }
 })
+
+onBeforeUnmount(() => {
+  // Clean up event listeners
+  if (typeof window !== 'undefined') {
+    window.removeEventListener('keydown', handleKeyDown)
+  }
+})
+
+const handleKeyDown = (event: KeyboardEvent) => {
+  // Skip if we're editing text
+  if (editorState.value.text.isEditing) return
+  
+  // Cmd/Ctrl + Z for undo
+  if ((event.metaKey || event.ctrlKey) && event.key === 'z' && !event.shiftKey) {
+    event.preventDefault()
+    undo()
+  }
+  
+  // Cmd/Ctrl + Shift + Z or Cmd/Ctrl + Y for redo
+  if (((event.metaKey || event.ctrlKey) && event.key === 'z' && event.shiftKey) || 
+      ((event.metaKey || event.ctrlKey) && event.key === 'y')) {
+    event.preventDefault()
+    redo()
+  }
+  
+  // Delete or Backspace to remove selected element
+  if (event.key === 'Delete' || event.key === 'Backspace') {
+    if (editorState.value.selectedElements.size > 0) {
+      event.preventDefault()
+      Array.from(editorState.value.selectedElements).forEach(id => {
+        removeElement(id)
+      })
+    }
+  }
+  
+  // Arrow keys to move selected elements
+  if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
+    if (editorState.value.selectedElements.size > 0) {
+      event.preventDefault()
+      const moveDistance = event.shiftKey ? 10 : 1
+      
+      Array.from(editorState.value.selectedElements).forEach(id => {
+        const element = editorState.value.elements.find(el => el.id === id)
+        if (!element) return
+        
+        const currentLeft = parseInt(element.style.left) || 0
+        const currentTop = parseInt(element.style.top) || 0
+        
+        switch (event.key) {
+          case 'ArrowUp':
+            updateElementStyle(id, { top: `${currentTop - moveDistance}px` })
+            break
+          case 'ArrowDown':
+            updateElementStyle(id, { top: `${currentTop + moveDistance}px` })
+            break
+          case 'ArrowLeft':
+            updateElementStyle(id, { left: `${currentLeft - moveDistance}px` })
+            break
+          case 'ArrowRight':
+            updateElementStyle(id, { left: `${currentLeft + moveDistance}px` })
+            break
+        }
+      })
+    }
+  }
+  
+  // Cmd/Ctrl + A to select all elements
+  if ((event.metaKey || event.ctrlKey) && event.key === 'a') {
+    event.preventDefault()
+    editorState.value.selectedElements.clear()
+    editorState.value.elements.forEach(element => {
+      editorState.value.selectedElements.add(element.id)
+    })
+  }
+  
+  // Escape to deselect all
+  if (event.key === 'Escape') {
+    editorState.value.selectedElements.clear()
+    editorState.value.selectedElement = null
+    
+    // Also cancel any active tool
+    editorState.value.drawing.active = false
+    editorState.value.shape.active = false
+    editorState.value.text.active = false
+    isPuzzleGeneratorOpen.value = false
+    isImagePickerOpen.value = false
+    isLayoutPickerOpen.value = false
+    isPreviewMode.value = false
+  }
+}
 
 const removeElement = (elementId: string) => {
   if (!selectedPage.value) return
@@ -977,6 +1093,231 @@ const updateElementTextProperties = (elementId: string, updates: any) => {
 }
 
 const showElementList = ref(false)
+
+// Updated multiselect functionality
+const isMultiSelecting = ref(false)
+const selectionBox = ref<{startX: number; startY: number; endX: number; endY: number} | null>(null)
+
+// Add selection box functionality
+const startSelectionBox = (e: MouseEvent) => {
+  // Only start selection box if not using other tools and clicking on canvas
+  if (e.target !== e.currentTarget || 
+      editorState.value.drawing.active || 
+      editorState.value.shape.active || 
+      editorState.value.text.active) return
+      
+  const rect = e.currentTarget.getBoundingClientRect()
+  const x = e.clientX - rect.left
+  const y = e.clientY - rect.top
+  
+  isMultiSelecting.value = true
+  selectionBox.value = { startX: x, startY: y, endX: x, endY: y }
+  
+  // Clear selection if not holding shift
+  if (!e.shiftKey) {
+    editorState.value.selectedElements.clear()
+    editorState.value.selectedElement = null
+  }
+}
+
+const updateSelectionBox = (e: MouseEvent) => {
+  if (!isMultiSelecting.value || !selectionBox.value) return
+  
+  const rect = e.currentTarget.getBoundingClientRect()
+  selectionBox.value.endX = e.clientX - rect.left
+  selectionBox.value.endY = e.clientY - rect.top
+}
+
+const endSelectionBox = () => {
+  if (!isMultiSelecting.value || !selectionBox.value) return
+  
+  // Calculate selection box bounds
+  const left = Math.min(selectionBox.value.startX, selectionBox.value.endX)
+  const top = Math.min(selectionBox.value.startY, selectionBox.value.endY)
+  const right = Math.max(selectionBox.value.startX, selectionBox.value.endX)
+  const bottom = Math.max(selectionBox.value.startY, selectionBox.value.endY)
+  
+  // Find elements that are within the selection box
+  editorState.value.elements.forEach(element => {
+    const elLeft = parseInt(element.style.left)
+    const elTop = parseInt(element.style.top)
+    const elRight = elLeft + parseInt(element.style.width)
+    const elBottom = elTop + parseInt(element.style.height)
+    
+    // Check if element intersects with selection box
+    if (elRight >= left && elLeft <= right && elBottom >= top && elTop <= bottom) {
+      editorState.value.selectedElements.add(element.id)
+      // Set the last element as the primary selected element
+      editorState.value.selectedElement = element.id
+    }
+  })
+  
+  isMultiSelecting.value = false
+  selectionBox.value = null
+}
+
+// Enhance handleCanvasMouseDown to include selection box
+const handleCanvasMouseDown = (e: MouseEvent) => {
+  if (editorState.value.drawing.active) {
+    const rect = e.currentTarget.getBoundingClientRect()
+    const point = {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    }
+    currentPath.value = [point]
+    // Create initial path element
+    const element = createPathElement(currentPath.value, {
+      brushSize: drawingState?.value?.brushSize ?? defaultDrawingSettings.brushSize,
+      color: drawingState?.value?.color ?? defaultDrawingSettings.color,
+      opacity: drawingState?.value?.opacity ?? defaultDrawingSettings.opacity,
+      type: drawingState?.value?.brushType ?? defaultDrawingSettings.brushType
+    })
+    currentPathId.value = element.id
+    editorState.value.drawing.isDrawing = true
+  } else if (editorState.value.shape.active) {
+    const rect = e.currentTarget.getBoundingClientRect()
+    const point = {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    }
+    editorState.value.shape.startPoint = point
+    editorState.value.shape.isDrawing = true
+
+    // Create initial shape element
+    const element = createShapeElement(
+      point,
+      { width: 1, height: 1 },
+      {
+        type: shapeState.value.type,
+        fill: shapeState.value.fill,
+        stroke: shapeState.value.stroke,
+        strokeWidth: shapeState.value.strokeWidth,
+        opacity: shapeState.value.opacity,
+        cornerRadius: shapeState.value.cornerRadius,
+        isFilled: shapeState.value.isFilled,
+        hasStroke: shapeState.value.hasStroke
+      }
+    )
+    currentShapeId.value = element.id
+  } else {
+    if (e.button === 0) { // Left mouse button
+      startSelectionBox(e)
+    }
+    startCanvasDrag({ x: e.clientX, y: e.clientY })
+  }
+}
+
+// Update handleCanvasMouseMove to include selection box
+const handleCanvasMouseMove = (e: MouseEvent) => {
+  if (editorState.value.drawing.active && editorState.value.drawing.isDrawing) {
+    const rect = e.currentTarget.getBoundingClientRect()
+    const point = {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    }
+    currentPath.value.push(point)
+    // Update the existing path element
+    if (currentPathId.value) {
+      const element = editorState.value.elements.find(el => el.id === currentPathId.value)
+      if (element && element.path) {
+        element.path.points = [...currentPath.value]
+      }
+    }
+  } else if (editorState.value.shape.active && editorState.value.shape.isDrawing) {
+    const rect = e.currentTarget.getBoundingClientRect()
+    const currentPoint = {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    }
+    editorState.value.shape.endPoint = currentPoint
+
+    // Update shape size
+    if (currentShapeId.value) {
+      const startPoint = editorState.value.shape.startPoint!
+      let width = Math.abs(currentPoint.x - startPoint.x)
+      let height = Math.abs(currentPoint.y - startPoint.y)
+
+      // Maintain aspect ratio if shift is held
+      if (e.shiftKey) {
+        const size = Math.max(width, height)
+        width = size
+        height = size
+      }
+
+      const left = Math.min(currentPoint.x, startPoint.x)
+      const top = Math.min(currentPoint.y, startPoint.y)
+
+      updateElementStyle(currentShapeId.value, {
+        width: `${width}px`,
+        height: `${height}px`,
+        left: `${left}px`,
+        top: `${top}px`
+      })
+    }
+  } else {
+    updateSelectionBox(e)
+    updateCanvasDrag({ x: e.clientX, y: e.clientY })
+  }
+}
+
+// Update handleCanvasMouseUp to include selection box
+const handleCanvasMouseUp = () => {
+  if (editorState.value.drawing.active && editorState.value.drawing.isDrawing) {
+    // Update the path element with final dimensions
+    if (currentPathId.value && currentPath.value.length > 1) {
+      updatePathElement(currentPathId.value, currentPath.value)
+    }
+    currentPath.value = []
+    currentPathId.value = null
+    editorState.value.drawing.isDrawing = false
+    editorState.value.drawing.active = false
+  } else if (editorState.value.shape.active && editorState.value.shape.isDrawing) {
+    currentShapeId.value = null
+    editorState.value.shape.isDrawing = false
+    editorState.value.shape.startPoint = null
+    editorState.value.shape.endPoint = null
+    editorState.value.shape.active = false
+  } else {
+    endSelectionBox()
+    stopCanvasDrag()
+  }
+}
+
+// Add support for group rotation
+const rotateSelectedElements = (angle: number) => {
+  Array.from(editorState.value.selectedElements).forEach(id => {
+    const element = editorState.value.elements.find(el => el.id === id)
+    if (!element) return
+    
+    const currentRotation = element.style.transform
+      ? parseFloat(element.style.transform.replace(/[^\d.-]/g, '')) || 0
+      : 0
+      
+    updateElementStyle(id, {
+      transform: `rotate(${currentRotation + angle}deg)`
+    })
+  })
+}
+
+const undo = () => {
+  // Implementation will depend on your history tracking mechanism
+  console.log("Undo action")
+  toaster.show({
+    title: 'Undo',
+    message: 'Action undone',
+    color: 'info'
+  })
+}
+
+const redo = () => {
+  // Implementation will depend on your history tracking mechanism
+  console.log("Redo action")
+  toaster.show({
+    title: 'Redo',
+    message: 'Action redone',
+    color: 'info'
+  })
+}
 </script>
 
 <template>
@@ -1561,6 +1902,28 @@ const showElementList = ref(false)
                 :opacity="shapeState.opacity"
               />
             </svg>
+            <!-- Add selection box visualization -->
+            <div 
+              v-if="isMultiSelecting && selectionBox"
+              class="absolute border border-primary-500 bg-primary-500 bg-opacity-10 pointer-events-none"
+              :style="{
+                left: `${Math.min(selectionBox.startX, selectionBox.endX)}px`,
+                top: `${Math.min(selectionBox.startY, selectionBox.endY)}px`,
+                width: `${Math.abs(selectionBox.endX - selectionBox.startX)}px`,
+                height: `${Math.abs(selectionBox.endY - selectionBox.startY)}px`
+              }"
+            ></div>
+            
+            <!-- Add keyboard shortcuts info -->
+            <div class="absolute bottom-4 right-4 bg-gray-800 bg-opacity-75 text-white p-2 rounded text-xs">
+              <div><kbd>⌘/Ctrl + Z</kbd>: Undo</div>
+              <div><kbd>⌘/Ctrl + Shift + Z</kbd>: Redo</div>
+              <div><kbd>Delete</kbd>: Remove selected</div>
+              <div><kbd>Arrow keys</kbd>: Move selected</div>
+              <div><kbd>Shift + Arrow keys</kbd>: Move by 10px</div>
+              <div><kbd>⌘/Ctrl + A</kbd>: Select all</div>
+              <div><kbd>Esc</kbd>: Deselect all</div>
+            </div>
           </div>
         </div>
       </div>

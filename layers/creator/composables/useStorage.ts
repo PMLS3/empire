@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { storageManager, type AssetType, type StorageProgress } from '../utils/storageManager';
 import { useToaster } from '../../shared/composables/toaster';
 

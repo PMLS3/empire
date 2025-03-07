@@ -15,6 +15,7 @@
     "@aws-sdk/credential-provider-node": "^3.758.0",
     "@aws-sdk/types": "3.734.0",
     "@cssninja/nuxt-toaster": "0.3.12",
+    "@google-cloud/text-to-speech": "^5.8.1",
     "@google-cloud/vertexai": "1.9.3",
     "@google/generative-ai": "0.22.0",
     "@gradientai/nodejs-sdk": "1.12.1",
@@ -50,5 +51,4 @@
     "typecheck": "nuxt typecheck",
     "clean": "rimraf .nuxt .output node_modules"
   }
-  
 }

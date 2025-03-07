@@ -1,6 +1,6 @@
 import { defineEventHandler, readBody, createError } from 'h3';
-import { getServerSession } from '#auth';
-import { db } from '../../lib/firebase';
+import { getUserSession, type UserSession } from '../../utils/session'
+import { useFirebaseServer } from '../../firebase/init'
 import { 
   collection, 
   doc, 
@@ -49,7 +49,7 @@ function vectorSearch(field: string, embedding: number[], dimensions: number, di
 
 export default defineEventHandler(async (event) => {
   // Check authentication
-  const session = await getServerSession(event);
+  const session = await getUserSession(event);
   if (!session) {
     throw createError({
       statusCode: 401,
@@ -59,6 +59,7 @@ export default defineEventHandler(async (event) => {
 
   try {
     const body = await readBody(event);
+    console.log('body', body)
     
     // Extract query parameters
     const {
@@ -80,9 +81,11 @@ export default defineEventHandler(async (event) => {
       });
     }
 
+    const { firestore } = useFirebaseServer(session.user?.token?.idToken as string)
+
     // If id is provided, fetch a single document
     if (id) {
-      const docRef = doc(db, collectionName, id);
+      const docRef = doc(firestore, collectionName, id);
       const docSnapshot = await getDoc(docRef);
 
       if (!docSnapshot.exists()) {
@@ -90,26 +93,29 @@ export default defineEventHandler(async (event) => {
       }
 
       return {
+        statusCode: 200,
+        data: {
         id: docSnapshot.id,
         ...docSnapshot.data(),
+        },
       };
     }
 
     // Otherwise, perform a query
-    let dbQuery: Query<DocumentData> = collection(db, collectionName) as CollectionReference<DocumentData>;
+    let dbQuery: Query<DocumentData> = collection(firestore, collectionName) as CollectionReference<DocumentData>;
 
     // Add filters
-    Object.entries(filters).forEach(([field, value]) => {
-      if (typeof value === 'object' && value !== null) {
-        // Handle range queries like { $gte: '2023-01-01' }
-        Object.entries(value).forEach(([operator, operandValue]) => {
-          const firestoreOperator = getFirestoreOperator(operator);
-          dbQuery = query(dbQuery, where(field, firestoreOperator, operandValue));
-        });
-      } else {
-        dbQuery = query(dbQuery, where(field, '==', value));
-      }
-    });
+    // Object.entries(filters).forEach(([field, value]) => {
+    //   if (typeof value === 'object' && value !== null) {
+    //     // Handle range queries like { $gte: '2023-01-01' }
+    //     Object.entries(value).forEach(([operator, operandValue]) => {
+    //       const firestoreOperator = getFirestoreOperator(operator);
+    //       dbQuery = query(dbQuery, where(field, firestoreOperator, operandValue));
+    //     });
+    //   } else {
+    //     dbQuery = query(dbQuery, where(field, '==', value));
+    //   }
+    // });
 
     // Handle vector search if provided
     if (vec && vec.query) {
@@ -144,7 +150,7 @@ export default defineEventHandler(async (event) => {
     dbQuery = query(dbQuery, limit(limitCount));
     
     if (startAfterDoc) {
-      const startAfterDocRef = doc(db, collectionName, startAfterDoc);
+      const startAfterDocRef = doc(firestore, collectionName, startAfterDoc);
       const startAfterDocSnapshot = await getDoc(startAfterDocRef);
       
       if (startAfterDocSnapshot.exists()) {
@@ -160,8 +166,10 @@ export default defineEventHandler(async (event) => {
       ...doc.data(),
     }));
 
-    return results;
-  } catch (error) {
+    console.log('----------------------')
+    console.log('results', results)
+    return { statusCode: 200, data: results}
+  } catch (error: any) {
     console.error('Data read error:', error);
     throw createError({
       statusCode: 500,

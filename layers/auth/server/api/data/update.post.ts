@@ -1,12 +1,12 @@
 import { defineEventHandler, readBody, createError } from 'h3';
-import { getServerSession } from '#auth';
-import { db } from '../../lib/firebase';
+import { getUserSession, type UserSession } from '../../utils/session'
+import { useFirebaseServer } from '../../firebase/init'
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { createEmbeddings } from '../../utils/session';
 
 export default defineEventHandler(async (event) => {
   // Check authentication
-  const session = await getServerSession(event);
+  const session = await getUserSession(event);
   if (!session) {
     throw createError({
       statusCode: 401,
@@ -39,9 +39,10 @@ export default defineEventHandler(async (event) => {
         statusMessage: 'Data is required',
       });
     }
+    const { firestore } = useFirebaseServer(session.user?.token?.idToken as string)
 
     // Get document reference
-    const docRef = doc(db, collectionName, id);
+    const docRef = doc(firestore, collectionName, id);
     
     // Check if document exists
     const docSnapshot = await getDoc(docRef);
@@ -80,12 +81,16 @@ export default defineEventHandler(async (event) => {
     await updateDoc(docRef, dataWithEmbeddings);
 
     // Return updated data with ID
-    return {
+    let updatedData = {
       id,
       ...docData,
       ...dataWithEmbeddings,
     };
-  } catch (error) {
+    return {
+      statusCode: 200,
+      data: updatedData,
+    }
+  } catch (error: any) {
     console.error('Data update error:', error);
     throw createError({
       statusCode: error.statusCode || 500,

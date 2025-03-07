@@ -7,6 +7,14 @@ export interface ShapeState {
   cornerRadius: number
   isFilled: boolean
   hasStroke: boolean
+  useGradient: boolean
+  gradient: {
+    type: 'linear' | 'radial'
+    startColor: string
+    endColor: string
+    angle: number // for linear gradients
+    position: 'center' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' // for radial gradients
+  }
 }
 
 export const useShapeTools = () => {
@@ -18,7 +26,15 @@ export const useShapeTools = () => {
     opacity: 1,
     cornerRadius: 0,
     isFilled: true,
-    hasStroke: true
+    hasStroke: true,
+    useGradient: false,
+    gradient: {
+      type: 'linear',
+      startColor: '#ffffff',
+      endColor: '#000000',
+      angle: 90,
+      position: 'center'
+    }
   }))
 
   const setShapeType = (type: ShapeState['type']) => {
@@ -53,6 +69,46 @@ export const useShapeTools = () => {
     shapeState.value.hasStroke = !shapeState.value.hasStroke
   }
 
+  const toggleGradient = () => {
+    shapeState.value.useGradient = !shapeState.value.useGradient
+  }
+
+  const setGradientType = (type: 'linear' | 'radial') => {
+    shapeState.value.gradient.type = type
+  }
+
+  const setGradientColors = (startColor: string, endColor: string) => {
+    shapeState.value.gradient.startColor = startColor
+    shapeState.value.gradient.endColor = endColor
+  }
+
+  const setGradientAngle = (angle: number) => {
+    shapeState.value.gradient.angle = angle % 360
+  }
+
+  const setGradientPosition = (position: 'center' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right') => {
+    shapeState.value.gradient.position = position
+  }
+
+  const getGradientCSS = () => {
+    const { gradient } = shapeState.value
+    
+    if (gradient.type === 'linear') {
+      return `linear-gradient(${gradient.angle}deg, ${gradient.startColor}, ${gradient.endColor})`
+    } else {
+      // Map position to CSS background position
+      const positionMap = {
+        'center': 'center center',
+        'top-left': 'left top',
+        'top-right': 'right top',
+        'bottom-left': 'left bottom',
+        'bottom-right': 'right bottom'
+      }
+      
+      return `radial-gradient(circle at ${positionMap[gradient.position]}, ${gradient.startColor}, ${gradient.endColor})`
+    }
+  }
+
   return {
     shapeState,
     setShapeType,
@@ -62,6 +118,12 @@ export const useShapeTools = () => {
     setOpacity,
     setCornerRadius,
     toggleFill,
-    toggleStroke
+    toggleStroke,
+    toggleGradient,
+    setGradientType,
+    setGradientColors,
+    setGradientAngle,
+    setGradientPosition,
+    getGradientCSS
   }
 }

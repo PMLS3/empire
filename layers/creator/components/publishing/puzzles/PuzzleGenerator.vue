@@ -45,7 +45,70 @@
             />
           </template>
 
-          <!-- Other puzzle customizations will go here -->
+          <!-- Crossword Customization -->
+          <template v-else-if="selectedPuzzle.id === 'crossword'">
+            <PublishingPuzzlesCrosswordCustomize
+              v-model="customization"
+              @update:modelValue="(val) => {
+                customization.value = {
+                  ...customization.value,
+                  ...val
+                }
+              }"
+            />
+          </template>
+
+          <!-- Sudoku Customization -->
+          <template v-else-if="selectedPuzzle.id === 'sudoku'">
+            <PublishingPuzzlesSudokuCustomize
+              v-model="customization"
+              @update:modelValue="(val) => {
+                customization.value = {
+                  ...customization.value,
+                  ...val
+                }
+              }"
+            />
+          </template>
+
+          <!-- Maze Customization -->
+          <template v-else-if="selectedPuzzle.id === 'maze'">
+            <PublishingPuzzlesMazeCustomize
+              v-model="customization"
+              @update:modelValue="(val) => {
+                customization.value = {
+                  ...customization.value,
+                  ...val
+                }
+              }"
+            />
+          </template>
+
+          <!-- Word Scramble Customization -->
+          <template v-else-if="selectedPuzzle.id === 'word-scramble'">
+            <PublishingPuzzlesWordScrambleCustomize
+              v-model="customization"
+              @update:modelValue="(val) => {
+                customization.value = {
+                  ...customization.value,
+                  ...val
+                }
+              }"
+            />
+          </template>
+
+          <!-- Logic Grid Customization -->
+          <template v-else-if="selectedPuzzle.id === 'logic-grid'">
+            <PublishingPuzzlesLogicGridCustomize
+              v-model="customization"
+              @update:modelValue="(val) => {
+                customization.value = {
+                  ...customization.value,
+                  ...val
+                }
+              }"
+            />
+          </template>
         </div>
 
         <!-- Generate Button -->
@@ -100,6 +163,128 @@
                 :background-color="generatedPuzzle.content?.backgroundColor || generatedPuzzle.backgroundColor"
                 :border-color="generatedPuzzle.content?.borderColor || generatedPuzzle.borderColor"
                 :locations-color="generatedPuzzle.content?.locationsColor || generatedPuzzle.locationsColor"
+              />
+            </div>
+          </template>
+
+          <!-- Crossword -->
+          <template v-else-if="generatedPuzzle.type === 'crossword'">
+            <div v-if="!showSolution">
+              <PublishingPuzzlesCrosswordPreview
+                :grid="generatedPuzzle.content?.grid"
+                :clues="generatedPuzzle.content?.clues"
+                :text-color="generatedPuzzle.content?.textColor"
+                :background-color="generatedPuzzle.content?.backgroundColor"
+                :accent-color="generatedPuzzle.content?.accentColor"
+                :highlight-color="generatedPuzzle.content?.highlightColor"
+              />
+            </div>
+            <div v-else>
+              <PublishingPuzzlesCrosswordSolution
+                :grid="generatedPuzzle.content?.grid"
+                :clues="generatedPuzzle.content?.clues"
+                :solution="generatedPuzzle.content?.solution"
+                :text-color="generatedPuzzle.content?.textColor"
+                :background-color="generatedPuzzle.content?.backgroundColor"
+                :accent-color="generatedPuzzle.content?.accentColor"
+                :highlight-color="generatedPuzzle.content?.highlightColor"
+              />
+            </div>
+          </template>
+
+          <!-- Sudoku -->
+          <template v-else-if="generatedPuzzle.type === 'sudoku'">
+            <div v-if="!showSolution">
+              <PublishingPuzzlesSudokuPreview
+                :grid="generatedPuzzle.content?.grid"
+                :text-color="generatedPuzzle.content?.textColor"
+                :background-color="generatedPuzzle.content?.backgroundColor"
+                :accent-color="generatedPuzzle.content?.accentColor"
+                :highlight-color="generatedPuzzle.content?.highlightColor"
+                :variant="generatedPuzzle.content?.variant"
+              />
+            </div>
+            <div v-else>
+              <PublishingPuzzlesSudokuSolution
+                :grid="generatedPuzzle.content?.grid"
+                :solution="generatedPuzzle.content?.solution"
+                :text-color="generatedPuzzle.content?.textColor"
+                :background-color="generatedPuzzle.content?.backgroundColor"
+                :accent-color="generatedPuzzle.content?.accentColor"
+                :highlight-color="generatedPuzzle.content?.highlightColor"
+              />
+            </div>
+          </template>
+
+          <!-- Maze -->
+          <template v-else-if="generatedPuzzle.type === 'maze'">
+            <div v-if="!showSolution">
+              <PublishingPuzzlesMazePreview
+                :grid="generatedPuzzle.content?.grid"
+                :start="generatedPuzzle.content?.start"
+                :end="generatedPuzzle.content?.end"
+                :size="generatedPuzzle.content?.size"
+                :wall-color="generatedPuzzle.content?.wallColor"
+                :background-color="generatedPuzzle.content?.backgroundColor"
+                :accent-color="generatedPuzzle.content?.accentColor"
+              />
+            </div>
+            <div v-else>
+              <PublishingPuzzlesMazeSolution
+                :grid="generatedPuzzle.content?.grid"
+                :solution="generatedPuzzle.content?.solution"
+                :start="generatedPuzzle.content?.start"
+                :end="generatedPuzzle.content?.end"
+                :size="generatedPuzzle.content?.size"
+                :wall-color="generatedPuzzle.content?.wallColor"
+                :background-color="generatedPuzzle.content?.backgroundColor"
+                :path-color="generatedPuzzle.content?.pathColor"
+              />
+            </div>
+          </template>
+
+          <!-- Word Scramble -->
+          <template v-else-if="generatedPuzzle.type === 'word-scramble'">
+            <div v-if="!showSolution">
+              <PublishingPuzzlesWordScramblePreview
+                :words="generatedPuzzle.content?.words"
+                :scrambled-words="generatedPuzzle.content?.scrambledWords"
+                :text-color="generatedPuzzle.content?.textColor"
+                :background-color="generatedPuzzle.content?.backgroundColor"
+                :accent-color="generatedPuzzle.content?.accentColor"
+              />
+            </div>
+            <div v-else>
+              <PublishingPuzzlesWordScrambleSolution
+                :words="generatedPuzzle.content?.words"
+                :scrambled-words="generatedPuzzle.content?.scrambledWords"
+                :text-color="generatedPuzzle.content?.textColor"
+                :background-color="generatedPuzzle.content?.backgroundColor"
+                :accent-color="generatedPuzzle.content?.accentColor"
+              />
+            </div>
+          </template>
+
+          <!-- Logic Grid -->
+          <template v-else-if="generatedPuzzle.type === 'logic-grid'">
+            <div v-if="!showSolution">
+              <PublishingPuzzlesLogicGridPreview
+                :grid="generatedPuzzle.content?.grid"
+                :clues="generatedPuzzle.content?.clues"
+                :categories="generatedPuzzle.content?.categories"
+                :text-color="generatedPuzzle.content?.textColor"
+                :background-color="generatedPuzzle.content?.backgroundColor"
+                :accent-color="generatedPuzzle.content?.accentColor"
+              />
+            </div>
+            <div v-else>
+              <PublishingPuzzlesLogicGridSolution
+                :grid="generatedPuzzle.content?.grid"
+                :solution="generatedPuzzle.content?.solution"
+                :categories="generatedPuzzle.content?.categories"
+                :text-color="generatedPuzzle.content?.textColor"
+                :background-color="generatedPuzzle.content?.backgroundColor"
+                :accent-color="generatedPuzzle.content?.accentColor"
               />
             </div>
           </template>
@@ -173,7 +358,61 @@ const puzzleTypes = ref<PuzzleType[]>([
       theme: true
     }
   },
-  // ... other puzzle types
+  {
+    id: 'crossword',
+    name: 'Crossword',
+    description: 'Fill in words based on clues across and down',
+    icon: 'ph:grid-four',
+    difficulty: 'medium',
+    customization: {
+      theme: true,
+      difficulty: true
+    }
+  },
+  {
+    id: 'sudoku',
+    name: 'Sudoku',
+    description: 'Fill in numbers 1-9 in each row, column and square',
+    icon: 'ph:number-square-nine',
+    difficulty: 'medium',
+    customization: {
+      variant: true,
+      difficulty: true
+    }
+  },
+  {
+    id: 'maze',
+    name: 'Maze',
+    description: 'Navigate from start to finish through a complex path',
+    icon: 'ph:corners-out',
+    difficulty: 'easy',
+    customization: {
+      size: true,
+      difficulty: true
+    }
+  },
+  {
+    id: 'word-scramble',
+    name: 'Word Scramble',
+    description: 'Unscramble letters to form words',
+    icon: 'ph:shuffle',
+    difficulty: 'easy',
+    customization: {
+      words: true,
+      theme: true
+    }
+  },
+  {
+    id: 'logic-grid',
+    name: 'Logic Grid Puzzle',
+    description: 'Use logical deduction to solve a grid of clues',
+    icon: 'ph:squares-four',
+    difficulty: 'hard',
+    customization: {
+      difficulty: true,
+      theme: true
+    }
+  }
 ])
 
 const selectedPuzzle = ref<PuzzleType | null>(null)
@@ -380,8 +619,48 @@ const generatePuzzle = async () => {
           locationsColor: customization.value.locationsColor,
           showHints: customization.value.showHints
         }
-        console.log('Word search settings being passed to generator:', wordSearchSettings)
         content = await generateWordSearch(wordSearchSettings)
+        break
+      }
+      case 'crossword': {
+        const { generateCrossword } = await import('./crossword/generator')
+        const crosswordSettings: CrosswordSettings = {
+          ...baseSettings,
+          symmetrical: true,
+          maxWordLength: customization.value.maxWordLength,
+          gridSize: customization.value.size || 10,
+          theme: customization.value.theme || 'general',
+          words: customization.value.words || []
+        }
+        content = await generateCrossword(crosswordSettings)
+        break
+      }
+      case 'sudoku': {
+        const { generateSudoku } = await import('./sudoku/generator')
+        const sudokuSettings: SudokuSettings = {
+          ...baseSettings,
+          symmetrical: customization.value.symmetrical !== false,
+          showGuidelines: customization.value.showGuidelines !== false,
+          showCandidates: customization.value.showCandidates || false,
+          highlightRegions: customization.value.highlightRegions !== false,
+          cellSize: customization.value.cellSize || 'medium',
+          variant: customization.value.variant || 'classic',
+          numberColor: customization.value.numberColor || customization.value.textColor,
+          size: 9
+        }
+        content = await generateSudoku(sudokuSettings)
+        break
+      }
+      case 'maze': {
+        const { generateMaze } = await import('./maze/generator')
+        const mazeSettings: MazeSettings = {
+          ...baseSettings,
+          size: customization.value.size || 15,
+          wallColor: customization.value.wallColor || '#000000',
+          pathColor: customization.value.pathColor || '#4CAF50',
+          style: customization.value.style || 'classic'
+        }
+        content = await generateMaze(mazeSettings)
         break
       }
       case 'word-ladder': {
@@ -402,6 +681,28 @@ const generatePuzzle = async () => {
         content = await generateWordLadder(wordLadderSettings)
         break
       }
+      case 'word-scramble': {
+        const { generateWordScramble } = await import('./word-scramble/generator')
+        const wordScrambleSettings = {
+          ...baseSettings,
+          words: customization.value.words || [],
+          theme: customization.value.theme || 'general',
+          showClues: customization.value.showClues !== false
+        }
+        content = await generateWordScramble(wordScrambleSettings)
+        break
+      }
+      case 'logic-grid': {
+        const { generateLogicGrid } = await import('./logic-grid/generator')
+        const logicGridSettings: LogicGridSettings = {
+          ...baseSettings,
+          categories: customization.value.categories || [],
+          itemsPerCategory: customization.value.itemsPerCategory || 4,
+          cluesCount: customization.value.cluesCount || 8
+        }
+        content = await generateLogicGrid(logicGridSettings)
+        break
+      }
       case 'math-grid': {
         const { generateMathGrid } = await import('./math-grid/generator')
         const mathGridSettings: MathGridSettings = {
@@ -418,7 +719,6 @@ const generatePuzzle = async () => {
         content = await generateMathGrid(mathGridSettings)
         break
       }
-      // ... other cases
     }
 
     if (content) {

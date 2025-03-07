@@ -12,7 +12,8 @@ interface Page {
 
 interface Element {
   id: string
-  type: 'puzzle' | 'image' | 'text' | 'drawing' | 'path' | 'shape' | 'text'
+  type: 'puzzle' | 'image' | 'text' | 'drawing' | 'path' | 'shape' | 'text' | 'group' | 'text-on-path'
+  groupId?: string // For grouped elements
   puzzle?: {
     type: 'word-search'
     content: {
@@ -58,6 +59,43 @@ interface Element {
     lineHeight: number
     letterSpacing: number
     opacity: number
+    effects?: {
+      shadow?: {
+        enabled: boolean
+        color: string
+        blur: number
+        offsetX: number
+        offsetY: number
+      }
+      outline?: {
+        enabled: boolean
+        color: string
+        width: number
+      }
+    }
+  }
+  textOnPath?: {
+    text: string
+    pathType: 'arc' | 'wave' | 'circle' | 'straight'
+    path: string
+    style: {
+      font: string
+      size: number
+      color: string
+      alignment: 'left' | 'center' | 'right'
+      bold: boolean
+      italic: boolean
+      underline: boolean
+      letterSpacing: number
+      opacity: number
+    }
+    startOffset: number
+    side: 'left' | 'right'
+    spacing: number | 'auto'
+  }
+  group?: {
+    elements: string[] // IDs of grouped elements
+    name: string
   }
   style: {
     width: string
@@ -66,6 +104,7 @@ interface Element {
     left: string
     transform: string
     zIndex?: string
+    opacity?: number
   }
 }
 
@@ -106,6 +145,11 @@ interface EditorState {
 }
 
 export const useEditor = () => {
+  // Helper to generate a unique ID
+  const generateId = () => {
+    return Math.random().toString(36).substring(2, 9);
+  }
+
   // Editor state
   const editorState = useState<EditorState>('editor', () => ({
     zoom: 100,
@@ -126,6 +170,12 @@ export const useEditor = () => {
     selectedElement: null,
     elements: [],
     selectedPage: null,
+    groups: new Map<string, string[]>(), // Maps group IDs to element IDs
+    history: {
+      past: [] as Array<Array<Element>>,
+      future: [] as Array<Array<Element>>,
+      saveState: true
+    },
     drawing: {
       active: false,
       currentTool: null,
@@ -140,6 +190,15 @@ export const useEditor = () => {
     text: {
       active: false,
       isEditing: false
+    },
+    textOnPath: {
+      active: false,
+      isEditing: false
+    },
+    autoSave: {
+      enabled: true,
+      interval: 30000, // 30 seconds
+      lastSaved: Date.now()
     }
   }))
 
@@ -477,6 +536,267 @@ export const useEditor = () => {
     }
   }
 
+  // Group Management functions
+  const createGroup = () => {
+    const selectedElementIds = Array.from(editorState.value.selectedElements)
+    if (selectedElementIds.length <= 1) return null
+    
+    const groupId = generateId()
+    const groupName = `Group ${editorState.value.groups.size + 1}`
+    
+    // Create a group element
+    const groupElement: Element = {
+      id: groupId,
+      type: 'group',
+      group: {
+        elements: selectedElementIds,
+        name: groupName
+      },
+      style: calculateGroupBounds(selectedElementIds)
+    }
+    
+    // Add groupId to all the grouped elements
+    selectedElementIds.forEach(elementId => {
+      const element = editorState.value.elements.find(el => el.id === elementId)
+      if (element) {
+        element.groupId = groupId
+      }
+    })
+    
+    // Add to groups map
+    editorState.value.groups.set(groupId, selectedElementIds)
+    
+    // Add the group element to the elements array
+    editorState.value.elements.push(groupElement)
+    
+    // Select the group
+    selectElement(groupId)
+    
+    // Save state to history
+    saveToHistory()
+    
+    return groupElement
+  }
+  
+  const ungroup = (groupId: string) => {
+    const groupElement = editorState.value.elements.find(el => el.id === groupId && el.type === 'group')
+    if (!groupElement || !groupElement.group) return
+    
+    // Remove groupId from all elements in the group
+    groupElement.group.elements.forEach(elementId => {
+      const element = editorState.value.elements.find(el => el.id === elementId)
+      if (element) {
+        delete element.groupId
+      }
+    })
+    
+    // Remove from groups map
+    editorState.value.groups.delete(groupId)
+    
+    // Remove the group element
+    removeElement(groupId)
+    
+    // Select all the elements that were in the group
+    editorState.value.selectedElements.clear()
+    groupElement.group.elements.forEach(elementId => {
+      editorState.value.selectedElements.add(elementId)
+    })
+    
+    // Set the last element as the primary selected element
+    const lastElementId = groupElement.group.elements[groupElement.group.elements.length - 1]
+    editorState.value.selectedElement = lastElementId
+    
+    // Save state to history
+    saveToHistory()
+  }
+  
+  const calculateGroupBounds = (elementIds: string[]) => {
+    const elements = editorState.value.elements.filter(el => elementIds.includes(el.id))
+    if (elements.length === 0) return { width: '100px', height: '100px', top: '0px', left: '0px', transform: 'rotate(0deg)', zIndex: '1' }
+    
+    let minX = Infinity
+    let minY = Infinity
+    let maxX = -Infinity
+    let maxY = -Infinity
+    
+    elements.forEach(element => {
+      const left = parseInt(element.style.left) || 0
+      const top = parseInt(element.style.top) || 0
+      const width = parseInt(element.style.width) || 0
+      const height = parseInt(element.style.height) || 0
+      
+      minX = Math.min(minX, left)
+      minY = Math.min(minY, top)
+      maxX = Math.max(maxX, left + width)
+      maxY = Math.max(maxY, top + height)
+    })
+    
+    return {
+      width: `${maxX - minX}px`,
+      height: `${maxY - minY}px`,
+      top: `${minY}px`,
+      left: `${minX}px`,
+      transform: 'rotate(0deg)',
+      zIndex: '10' // Make sure group is rendered on top
+    }
+  }
+
+  // Text on Path functions
+  const createTextOnPathElement = (
+    position: { x: number; y: number },
+    textProps: {
+      text: string
+      pathType: 'arc' | 'wave' | 'circle' | 'straight'
+      style: {
+        font: string
+        size: number
+        color: string
+        alignment: 'left' | 'center' | 'right'
+        bold: boolean
+        italic: boolean
+        underline: boolean
+        letterSpacing: number
+        opacity: number
+      }
+    }
+  ) => {
+    const element: Element = {
+      id: generateId(),
+      type: 'text-on-path',
+      textOnPath: {
+        text: textProps.text,
+        pathType: textProps.pathType,
+        path: '', // Will be generated by the component
+        style: textProps.style,
+        startOffset: 0,
+        side: 'left',
+        spacing: 'auto'
+      },
+      style: {
+        width: '300px',
+        height: '150px',
+        top: `${position.y}px`,
+        left: `${position.x}px`,
+        transform: 'rotate(0deg)',
+        zIndex: '1'
+      }
+    }
+    
+    editorState.value.elements.push(element)
+    selectElement(element.id)
+    saveToHistory()
+    return element
+  }
+  
+  const updateTextOnPathProperties = (elementId: string, properties: any) => {
+    const element = editorState.value.elements.find(el => el.id === elementId)
+    if (!element || element.type !== 'text-on-path' || !element.textOnPath) return
+    
+    element.textOnPath = {
+      ...element.textOnPath,
+      ...properties
+    }
+    
+    saveToHistory()
+  }
+
+  // History Management
+  const saveToHistory = () => {
+    if (!editorState.value.history.saveState) return
+    
+    // Clone the current elements array
+    const currentState = JSON.parse(JSON.stringify(editorState.value.elements))
+    
+    // Add to past states
+    editorState.value.history.past.push(currentState)
+    
+    // Clear future states when a new action is performed
+    editorState.value.history.future = []
+    
+    // Limit history size to prevent memory issues (keep last 30 states)
+    if (editorState.value.history.past.length > 30) {
+      editorState.value.history.past.shift()
+    }
+  }
+  
+  const undo = () => {
+    if (editorState.value.history.past.length === 0) return
+    
+    // Get current state before changing
+    const currentState = JSON.parse(JSON.stringify(editorState.value.elements))
+    
+    // Add current state to future
+    editorState.value.history.future.push(currentState)
+    
+    // Get last state from past
+    const previousState = editorState.value.history.past.pop()
+    
+    // Temporarily disable saving to history to avoid recursion
+    editorState.value.history.saveState = false
+    
+    // Restore previous state
+    editorState.value.elements = previousState || []
+    
+    // Re-enable saving to history
+    editorState.value.history.saveState = true
+  }
+  
+  const redo = () => {
+    if (editorState.value.history.future.length === 0) return
+    
+    // Get current state before changing
+    const currentState = JSON.parse(JSON.stringify(editorState.value.elements))
+    
+    // Add current state to past
+    editorState.value.history.past.push(currentState)
+    
+    // Get next state from future
+    const nextState = editorState.value.history.future.pop()
+    
+    // Temporarily disable saving to history to avoid recursion
+    editorState.value.history.saveState = false
+    
+    // Restore next state
+    editorState.value.elements = nextState || []
+    
+    // Re-enable saving to history
+    editorState.value.history.saveState = true
+  }
+  
+  // Auto-save functionality
+  const setupAutoSave = (saveCallback: Function) => {
+    if (typeof window === 'undefined') return null
+    
+    const interval = setInterval(() => {
+      if (!editorState.value.autoSave.enabled) return
+      
+      const now = Date.now()
+      const timeSinceLastSave = now - editorState.value.autoSave.lastSaved
+      
+      if (timeSinceLastSave >= editorState.value.autoSave.interval) {
+        saveCallback()
+        editorState.value.autoSave.lastSaved = now
+      }
+    }, 5000) // Check every 5 seconds
+    
+    return interval
+  }
+  
+  const toggleAutoSave = () => {
+    editorState.value.autoSave.enabled = !editorState.value.autoSave.enabled
+  }
+  
+  const setAutoSaveInterval = (interval: number) => {
+    editorState.value.autoSave.interval = interval
+  }
+  
+  // Listen for state changes and save to history
+  watch(() => editorState.value.elements, () => {
+    if (editorState.value.history.saveState) {
+      saveToHistory()
+    }
+  }, { deep: true })
+
   return {
     editorState,
     selectedElement,
@@ -509,5 +829,27 @@ export const useEditor = () => {
     createTextElement,
     updateElementText,
     updateDrawingCanvas,
+    
+    // Group functions
+    createGroup,
+    ungroup,
+    calculateGroupBounds,
+    
+    // Text on Path functions
+    createTextOnPathElement,
+    updateTextOnPathProperties,
+    
+    // History functions
+    saveToHistory,
+    undo,
+    redo,
+    
+    // Auto-save functions
+    setupAutoSave,
+    toggleAutoSave,
+    setAutoSaveInterval,
+    
+    // ID generator
+    generateId
   }
 }
